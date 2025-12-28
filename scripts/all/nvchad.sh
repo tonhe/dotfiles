@@ -39,16 +39,8 @@ get_version() {
 install() {
     log_info "Installing NvChad..."
 
-    # Check prerequisites
-    if ! command -v git &>/dev/null; then
-        log_error "git is required but not installed"
-        return 1
-    fi
-
-    if ! command -v nvim &>/dev/null; then
-        log_error "neovim is required but not installed"
-        return 1
-    fi
+    # Trust that brewfile dependency installed git and neovim
+    # No need to check - dependency system ensures brewfile ran first
 
     # Remove any existing partial nvim config (except our lua/ directory)
     if [[ -d "$HOME/.config/nvim" ]]; then

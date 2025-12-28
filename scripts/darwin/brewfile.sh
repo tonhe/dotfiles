@@ -63,14 +63,39 @@ install() {
         return 1
     fi
 
-    log_info "Installing packages from Brewfile..."
+    # Count total packages to install
+    local total=$(grep -E "^(brew|cask|mas) " "$brewfile" | wc -l | tr -d ' ')
+    log_info "Installing ${total} packages from Brewfile..."
 
-    # Run brew bundle with output visible
-    if brew bundle --file="$brewfile"; then
-        log_success "Brewfile packages installed"
+    # Refresh sudo timestamp before running brew bundle
+    sudo -v
+
+    # Install with progress bar
+    local current=0
+    local current_package=""
+
+    # Use process substitution to avoid subshell and capture exit code
+    # Temporarily disable exit on error for brew bundle
+    set +e
+    while IFS= read -r line; do
+        # Extract package name from "Installing <package>" or "Using <package>"
+        if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
+            current_package="${BASH_REMATCH[1]}"
+            current=$((current + 1))
+            progress_bar $current $total "Installing: $current_package"
+        fi
+    done < <(SUDO_ASKPASS="" brew bundle --file="$brewfile" 2>&1)
+
+    local brew_exit_code=$?
+    set -e
+
+    # Ensure progress reaches 100%
+    progress_bar $total $total "Brewfile packages complete"
+
+    if [ $brew_exit_code -eq 0 ]; then
+        log_success "Brewfile packages installed (${total} packages)"
     else
-        local exit_code=$?
-        log_warn "Some packages failed to install (exit code: $exit_code)"
+        log_warn "Some packages failed to install (exit code: $brew_exit_code)"
         log_info "Continuing with successfully installed packages..."
         # Don't fail - partial installation is acceptable
     fi

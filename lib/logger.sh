@@ -17,15 +17,21 @@ LOG_FILE="${DOTFILES_HOME}/bootstrap.log"
 LOG_MAX_SIZE=$((10 * 1024 * 1024))  # 10MB
 
 # Boot timer - tracks milliseconds since start
-BOOT_START_TIME=$(date +%s)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    if command -v gdate &>/dev/null; then
-        BOOT_START_MS=$(gdate +%s%3N)
+# Only initialize once - don't reset if already set (when re-sourced by modules)
+if [[ -z "${BOOT_START_MS}" ]]; then
+    BOOT_START_TIME=$(date +%s)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v gdate &>/dev/null; then
+            BOOT_START_MS=$(gdate +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
+        else
+            BOOT_START_MS=$((BOOT_START_TIME * 1000))
+        fi
     else
-        BOOT_START_MS=$((BOOT_START_TIME * 1000))
+        BOOT_START_MS=$(date +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
     fi
-else
-    BOOT_START_MS=$(date +%s%3N)
+
+    # Ensure BOOT_START_MS is never empty
+    : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
 fi
 
 # Current module context
@@ -86,15 +92,31 @@ log_init() {
 # Get elapsed time in seconds with millisecond precision
 get_elapsed_ms() {
     local current_ms
+    local current_sec
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
         if command -v gdate &>/dev/null; then
-            current_ms=$(gdate +%s%3N)
+            current_ms=$(gdate +%s%3N 2>/dev/null)
+            if [[ -z "$current_ms" ]]; then
+                current_sec=$(date +%s 2>/dev/null || echo "0")
+                current_ms=$((current_sec * 1000))
+            fi
         else
-            current_ms=$(($(date +%s) * 1000))
+            current_sec=$(date +%s 2>/dev/null || echo "0")
+            current_ms=$((current_sec * 1000))
         fi
     else
-        current_ms=$(date +%s%3N)
+        current_ms=$(date +%s%3N 2>/dev/null)
+        if [[ -z "$current_ms" ]]; then
+            current_sec=$(date +%s 2>/dev/null || echo "0")
+            current_ms=$((current_sec * 1000))
+        fi
     fi
+
+    # Ensure we have valid numbers
+    : ${current_ms:=0}
+    : ${BOOT_START_MS:=0}
+
     echo $((current_ms - BOOT_START_MS))
 }
 

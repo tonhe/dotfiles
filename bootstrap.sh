@@ -912,6 +912,12 @@ machine_type = "$machine_type"
 EOF
             info "Created personal data file"
 
+            # Regenerate chezmoi config from the template
+            info "Regenerating chezmoi configuration..."
+            if ! chezmoi init --force "$DOTFILES_REPO" &>/dev/null; then
+                warn "Could not regenerate config, continuing anyway"
+            fi
+
             # Now apply dotfiles with the data file
             info "Applying dotfiles with your information..."
             if chezmoi apply; then

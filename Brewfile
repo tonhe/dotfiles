@@ -151,8 +151,9 @@ cask "font-hack-nerd-font"
 # Mac App Store Apps (requires: brew install mas)
 # -----------------------------------------------------------------------------
 brew "mas"
-mas "Xcode", id: 497799835
-mas "Amphetamine", id: 937984704
-mas "Parcel", id: 375589283
-mas "Windows App", id: 1295203466
-mas "1Password for Safari", id: 1569813296
+# AppleStore not working in my VM for testing
+#mas "Xcode", id: 497799835
+#mas "Amphetamine", id: 937984704
+#mas "Parcel", id: 375589283
+#mas "Windows App", id: 1295203466
+#mas "1Password for Safari", id: 1569813296

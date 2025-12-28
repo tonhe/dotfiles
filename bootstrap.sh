@@ -1,1064 +1,523 @@
 #!/usr/bin/env bash
 # =============================================================================
-# bootstrap.sh - Dotfiles 2.0 Bootstrap Script
+# bootstrap.sh - Dotfiles 3.0 Main Orchestrator
 # =============================================================================
-# Description: Sets up a fresh macOS or Linux machine from scratch
-# OS Support: macOS (Darwin) and Linux
-# Run with:
-#   curl -fsSL https://raw.githubusercontent.com/YOURUSERNAME/dotfiles/main/bootstrap.sh | bash
-# Or clone the repo and run: ./bootstrap.sh
+# A modular, maintainable dotfiles bootstrap system with Nord theme
+#
+# Usage:
+#   First time install (remote):
+#     curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/main/bootstrap.sh | bash
+#
+#   Local execution:
+#     ./bootstrap.sh [OPTIONS]
 #
 # Options:
-#   --dry-run    Preview what would be installed without making changes
-#   --preview    Same as --dry-run
-#   --help       Show this help message
+#   --help          Show this help message
+#   --dry-run       Preview what would be done without making changes
+#   --non-interactive   Run without prompts (uses defaults)
+#   --show-log      Show the bootstrap log
+#   --show-errors   Show only errors from log
+#   --clear-log     Archive and clear the log
 # =============================================================================
 
 set -e
 
+# =============================================================================
+# Bootstrap Configuration
+# =============================================================================
 DOTFILES_REPO="https://github.com/tonhe/dotfiles.git"
-START_TIME=$(date +%s)
+DOTFILES_HOME="${HOME}/.dotfiles"
+DOTFILES_REPO_DIR="${DOTFILES_HOME}/repo"
+
+# Runtime flags
 DRY_RUN=false
-
-# Parse command line arguments
-for arg in "$@"; do
-    case $arg in
-        --dry-run|--preview)
-            DRY_RUN=true
-            ;;
-        --help|-h)
-            echo "Dotfiles 2.0 Bootstrap Script"
-            echo ""
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  --dry-run, --preview    Preview what would be installed without making changes"
-            echo "  --help, -h              Show this help message"
-            echo ""
-            exit 0
-            ;;
-        *)
-            # Unknown option
-            ;;
-    esac
-done
+NON_INTERACTIVE=false
+ACTION=""
 
 # =============================================================================
-# Colors & Formatting
+# Argument Parsing
 # =============================================================================
-# Standard colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-WHITE='\033[0;37m'
-
-# Bold colors
-BOLD_RED='\033[1;31m'
-BOLD_GREEN='\033[1;32m'
-BOLD_YELLOW='\033[1;33m'
-BOLD_BLUE='\033[1;34m'
-BOLD_MAGENTA='\033[1;35m'
-BOLD_CYAN='\033[1;36m'
-BOLD_WHITE='\033[1;97m'
-
-# Background colors
-BG_RED='\033[41m'
-BG_GREEN='\033[42m'
-BG_YELLOW='\033[43m'
-BG_BLUE='\033[44m'
-
-# Special formatting
-BOLD='\033[1m'
-DIM='\033[2m'
-ITALIC='\033[3m'
-UNDERLINE='\033[4m'
-BLINK='\033[5m'
-REVERSE='\033[7m'
-NC='\033[0m' # No Color / Reset
-
-# Unicode box drawing characters
-BOX_TL='╔'  # Top-left
-BOX_TR='╗'  # Top-right
-BOX_BL='╚'  # Bottom-left
-BOX_BR='╝'  # Bottom-right
-BOX_H='═'   # Horizontal
-BOX_V='║'   # Vertical
-BOX_VR='╠'  # Vertical-right (left edge)
-BOX_VL='╣'  # Vertical-left (right edge)
-BOX_HU='╩'  # Horizontal-up (bottom edge)
-BOX_HD='╦'  # Horizontal-down (top edge)
-
-# Progress tracking
-TOTAL_STEPS=0
-CURRENT_STEP=0
-
-# Summary tracking
-declare -a INSTALLED_ITEMS=()
-declare -a SKIPPED_ITEMS=()
-declare -a FAILED_ITEMS=()
-
-# =============================================================================
-# Box Drawing Helpers
-# =============================================================================
-
-# Single-line centered box
-# Usage: print_box "message" "border_color" ["width"]
-# Note: Message should be plain text, colors will be added by the function
-print_box() {
-    local message=$1
-    local border_color=${2:-$CYAN}
-    local width=${3:-71}
-
-    # Get actual message length (plain text)
-    local message_length=${#message}
-
-    # Calculate padding
-    local total_padding=$((width - message_length - 2))  # -2 for the borders
-    local left_padding=$((total_padding / 2))
-    local right_padding=$((total_padding - left_padding))
-
-    # Top border
-    echo -ne "${border_color}┌"
-    printf '─%.0s' $(seq 1 $((width - 2)))
-    echo -e "┐${NC}"
-
-    # Content line with padding
-    echo -ne "${border_color}│${NC}"
-    printf '%*s' "$left_padding" ""
-    echo -ne "${BOLD_WHITE}${message}${NC}"
-    printf '%*s' "$right_padding" ""
-    echo -e "${border_color}│${NC}"
-
-    # Bottom border
-    echo -ne "${border_color}└"
-    printf '─%.0s' $(seq 1 $((width - 2)))
-    echo -e "┘${NC}"
-}
-
-# Multi-line info box with key-value pairs
-# Usage: print_info_box "Key1:Value1" "Key2:Value2" ...
-print_info_box() {
-    local width=71
-    local border_color="${DIM}${CYAN}"
-
-    # Top border
-    echo -ne "${border_color}┌"
-    printf '─%.0s' $(seq 1 $((width - 2)))
-    echo -e "┐${NC}"
-
-    # Print each line
-    for line in "$@"; do
-        printf "${border_color}│${NC} %-$((width - 4))s ${border_color}│${NC}\n" "$line"
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            --dry-run|--preview)
+                DRY_RUN=true
+                ;;
+            --non-interactive|-n)
+                NON_INTERACTIVE=true
+                ;;
+            --show-log)
+                ACTION="show-log"
+                ;;
+            --show-errors)
+                ACTION="show-errors"
+                ;;
+            --clear-log)
+                ACTION="clear-log"
+                ;;
+            *)
+                echo "Unknown option: $1"
+                echo "Run with --help for usage information"
+                exit 1
+                ;;
+        esac
+        shift
     done
-
-    # Bottom border
-    echo -ne "${border_color}└"
-    printf '─%.0s' $(seq 1 $((width - 2)))
-    echo -e "┘${NC}"
 }
 
-# Helper to draw a box border with title in the middle
-# Usage: print_box_header "Title" "$COLOR"
-print_box_header() {
-    local title=$1
-    local border_color=$2
-    local width=71
-    local title_length=${#title}
+show_help() {
+    cat << 'EOF'
+Dotfiles 3.0 Bootstrap
 
-    # Calculate padding around title
-    local border_chars=$((width - 2 - title_length - 2))
-    local left_chars=$((border_chars / 2))
-    local right_chars=$((border_chars - left_chars))
+USAGE:
+    ./bootstrap.sh [OPTIONS]
 
-    echo -ne "${border_color}${BOX_TL}"
-    printf "${BOX_H}%.0s" $(seq 1 $left_chars)
-    echo -ne " ${title} "
-    printf "${BOX_H}%.0s" $(seq 1 $right_chars)
-    echo -e "${BOX_TR}${NC}"
-}
+OPTIONS:
+    --help              Show this help message
+    --dry-run           Preview without making changes
+    --non-interactive   Run without prompts (CI mode)
+    --show-log          Display the bootstrap log
+    --show-errors       Display only errors from log
+    --clear-log         Archive and clear the log
 
-# Helper to draw a full-width box border
-# Usage: print_box_border "top" "$COLOR" or print_box_border "bottom" "$COLOR"
-print_box_border() {
-    local border_type=$1
-    local border_color=$2
-    local width=71
+EXAMPLES:
+    # First time setup
+    ./bootstrap.sh
 
-    if [[ "$border_type" == "top" ]]; then
-        echo -ne "${border_color}${BOX_TL}"
-        printf "${BOX_H}%.0s" $(seq 1 $((width - 2)))
-        echo -e "${BOX_TR}${NC}"
-    else
-        echo -ne "${border_color}${BOX_BL}"
-        printf "${BOX_H}%.0s" $(seq 1 $((width - 2)))
-        echo -e "${BOX_BR}${NC}"
-    fi
-}
+    # Preview what would be installed
+    ./bootstrap.sh --dry-run
 
-# Helper to print a box line with content (left-aligned)
-# Usage: print_box_line "content with ${COLORS}" "$BORDER_COLOR"
-print_box_line() {
-    local content=$1
-    local border_color=$2
-    local width=71
+    # Non-interactive installation (CI/automation)
+    ./bootstrap.sh --non-interactive
 
-    # Strip ANSI codes to calculate actual visual length
-    local visual_content=$(echo -e "$content" | sed -E 's/\x1b\[[0-9;]*m//g')
-    local content_length=${#visual_content}
-    local padding=$((width - 4 - content_length))
+    # View recent errors
+    ./bootstrap.sh --show-errors
 
-    echo -ne "${border_color}${BOX_V}${NC} ${content}"
-    printf '%*s' "$((padding + 1))" ""
-    echo -e "${border_color}${BOX_V}${NC}"
-}
+REMOTE INSTALLATION:
+    curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/main/bootstrap.sh | bash
 
-# =============================================================================
-# ASCII Art Banner
-# =============================================================================
-print_banner() {
-    clear
-    echo -e "${BOLD_CYAN}"
-    cat << "EOF"
-    ____        __  ____  __
-   / __ \____  / /_/ __(_) /__  _____
-  / / / / __ \/ __/ /_/ / / _ \/ ___/
- / /_/ / /_/ / /_/ __/ / /  __(__  )
-/_____/\____/\__/_/ /_/_/\___/____/
-
-    ___            __      __                   ___   ____
-   / _ )___  ___  / /____ / /________ ____     |__ \ / __ \
-  / _  / _ \/ _ \/ __(_-</ __/ __/ _ `/ _ \    __/ // / / /
- /____/\___/\___/\__/___/\__/_/  \_,_/ .__/   / __// /_/ /
-                                    /_/      /___(_)____/
 EOF
-    echo -e "${NC}"
+}
 
-    # Dry run mode indicator
-    if [[ "$DRY_RUN" == true ]]; then
-        print_box "⚠  DRY RUN MODE - NO CHANGES WILL BE MADE  ⚠" "$BOLD_YELLOW" 71
-        echo ""
+# =============================================================================
+# Bootstrap Initialization
+# =============================================================================
+
+# Check if running from curl | bash
+is_remote_install() {
+    [[ ! -d "${DOTFILES_REPO_DIR}" ]]
+}
+
+# Clone repository if needed
+bootstrap_clone_repo() {
+    if [[ -d "${DOTFILES_REPO_DIR}/.git" ]]; then
+        log_info "Repository already cloned, pulling latest changes..."
+        cd "${DOTFILES_REPO_DIR}"
+        git pull origin main &>/dev/null || log_warn "Could not pull latest changes"
+        cd - >/dev/null
+        return 0
     fi
 
-    # System info
-    if [[ "$DRY_RUN" == true ]]; then
-        print_info_box \
-            "System: $(uname -s) $(uname -m)" \
-            "User: $(whoami)" \
-            "Date: $(date '+%Y-%m-%d %H:%M:%S')" \
-            "Mode: Preview (--dry-run)"
+    log_info "Cloning dotfiles repository..."
+    start_spinner "Cloning from ${DOTFILES_REPO}"
+
+    if git clone "${DOTFILES_REPO}" "${DOTFILES_REPO_DIR}" &>/dev/null; then
+        stop_spinner
+        log_success "Repository cloned successfully"
+        return 0
     else
-        print_info_box \
-            "System: $(uname -s) $(uname -m)" \
-            "User: $(whoami)" \
-            "Date: $(date '+%Y-%m-%d %H:%M:%S')"
-    fi
-    echo ""
-}
-
-# =============================================================================
-# Logging Functions
-# =============================================================================
-print_step() {
-    ((++CURRENT_STEP))
-    echo ""
-    print_box_border "top" "$BOLD_MAGENTA"
-    print_box_line "${BOLD_WHITE}STEP ${CURRENT_STEP}/${TOTAL_STEPS}:${NC} ${BOLD_CYAN}$1${NC}" "$BOLD_MAGENTA"
-    print_box_border "bottom" "$BOLD_MAGENTA"
-    echo ""
-}
-
-info() {
-    echo -e "  ${BOLD_CYAN}▸${NC} $1"
-}
-
-success() {
-    if [[ "$DRY_RUN" == true ]]; then
-        echo -e "  ${BOLD_BLUE}◆${NC} ${DIM}Would install:${NC} $1"
-    else
-        echo -e "  ${BOLD_GREEN}✓${NC} $1"
-    fi
-    INSTALLED_ITEMS+=("$1")
-}
-
-# For items that are already present/installed (doesn't count toward statistics)
-already_installed() {
-    echo -e "  ${BOLD_GREEN}✓${NC} $1 ${DIM}(already installed)${NC}"
-}
-
-# For items skipped in dry-run (doesn't count toward statistics)
-skipped() {
-    echo -e "  ${DIM}${CYAN}○${NC} ${DIM}$1${NC}"
-}
-
-warn() {
-    echo -e "  ${BOLD_YELLOW}⚠${NC} $1"
-    SKIPPED_ITEMS+=("$1")
-}
-
-error() {
-    echo -e "  ${BOLD_RED}✗${NC} $1"
-    FAILED_ITEMS+=("$1")
-    exit 1
-}
-
-# =============================================================================
-# Progress Bar
-# =============================================================================
-# Usage: progress_bar 50 100 "Installing packages"
-progress_bar() {
-    local current=$1
-    local total=$2
-    local message=$3
-    local width=50
-    local percentage=$((current * 100 / total))
-    local filled=$((width * current / total))
-    local empty=$((width - filled))
-
-    # Build the progress bar
-    local bar=""
-    for ((i=0; i<filled; i++)); do bar+="█"; done
-    for ((i=0; i<empty; i++)); do bar+="░"; done
-
-    # Print with percentage
-    printf "\r  ${BOLD_BLUE}[${GREEN}%s${BLUE}]${NC} ${BOLD_WHITE}%3d%%${NC} ${DIM}%s${NC}" "$bar" "$percentage" "$message"
-
-    # New line if complete
-    if [ "$current" -eq "$total" ]; then
-        echo ""
+        stop_spinner
+        log_error "Failed to clone repository from ${DOTFILES_REPO}"
+        return 1
     fi
 }
 
-# =============================================================================
-# Spinner Animation
-# =============================================================================
-spinner() {
-    local pid=$1
-    local message=$2
-    local delay=0.1
-    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+# Re-execute from cloned repository (for curl | bash)
+bootstrap_reexec() {
+    local cloned_script="${DOTFILES_REPO_DIR}/bootstrap.sh"
 
-    echo -n "  "
-    while ps -p $pid > /dev/null 2>&1; do
-        local temp=${spinstr#?}
-        printf "${BOLD_CYAN}%c${NC} ${DIM}%s${NC}" "$spinstr" "$message"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\r"
-    done
-    printf "    \r"  # Clear the line
-}
-
-# =============================================================================
-# Animated Dots
-# =============================================================================
-show_loading() {
-    local message=$1
-    local max_dots=3
-    local counter=0
-
-    while true; do
-        dots=""
-        for ((i=0; i<counter; i++)); do dots+="."; done
-        printf "\r  ${BOLD_CYAN}▸${NC} ${message}${dots}   "
-        counter=$(((counter + 1) % (max_dots + 1)))
-        sleep 0.5
-    done
-}
-
-kill_loading() {
-    if [ ! -z "$LOADING_PID" ]; then
-        kill $LOADING_PID 2>/dev/null
-        wait $LOADING_PID 2>/dev/null
-        printf "\r"
-        LOADING_PID=""
-    fi
-    return 0  # Always return success to avoid set -e issues
-}
-
-# =============================================================================
-# OS Detection
-# =============================================================================
-detect_os() {
-    case "$(uname -s)" in
-        Darwin)
-            OS="macos"
-            OS_ICON="macOS"
-            info "Detected ${BOLD_GREEN}macOS${NC} (Darwin)"
-            ;;
-        Linux)
-            OS="linux"
-            OS_ICON="Linux"
-            info "Detected ${BOLD_GREEN}Linux${NC}"
-
-            # Detect Linux distribution
-            if [ -f /etc/os-release ]; then
-                . /etc/os-release
-                DISTRO=$ID
-                info "Distribution: ${BOLD_CYAN}$NAME${NC}"
-            else
-                DISTRO="unknown"
-                warn "Could not detect Linux distribution"
-            fi
-            ;;
-        *)
-            error "Unsupported operating system: $(uname -s)"
-            ;;
-    esac
-}
-
-# =============================================================================
-# macOS: Xcode Command Line Tools
-# =============================================================================
-install_xcode_cli() {
-    info "Checking for Xcode Command Line Tools..."
-
-    if xcode-select -p &>/dev/null; then
-        already_installed "Xcode Command Line Tools"
-    else
-        if [[ "$DRY_RUN" == true ]]; then
-            success "Xcode Command Line Tools"
-        else
-            info "Installing Xcode Command Line Tools..."
-
-            # Use softwareupdate for fully automated CLI installation (no GUI popup)
-            # Find the Command Line Tools package name
-            local clt_label=$(softwareupdate --list 2>/dev/null | grep "\*.*Command Line" | head -n 1 | awk -F"*" '{print $2}' | sed 's/^ *//' | tr -d '\n')
-
-            if [[ -n "$clt_label" ]]; then
-                # Install in background so we can show progress
-                softwareupdate --install "$clt_label" --verbose &>/dev/null &
-                local install_pid=$!
-
-                # Show spinner while waiting
-                spinner $install_pid "Installing Xcode CLI Tools"
-                wait $install_pid
-
-                success "Xcode Command Line Tools installed"
-            else
-                # Fallback to interactive install if softwareupdate doesn't find it
-                warn "Could not find Xcode CLI Tools via softwareupdate, using interactive installer..."
-                xcode-select --install
-
-                # Wait for installation to complete
-                until xcode-select -p &>/dev/null; do
-                    sleep 5
-                done
-                success "Xcode Command Line Tools installed"
-            fi
-        fi
+    if [[ -x "$cloned_script" && "$0" != "$cloned_script" ]]; then
+        log_info "Re-executing from cloned repository..."
+        exec "$cloned_script" "$@"
     fi
 }
 
-# =============================================================================
-# macOS: Homebrew
-# =============================================================================
-install_homebrew() {
-    info "Checking for Homebrew..."
+# Load all libraries
+bootstrap_load_libs() {
+    local lib_dir="${DOTFILES_REPO_DIR}/lib"
 
-    # Check if Homebrew is actually installed (check filesystem, not just PATH)
-    local brew_path=""
-    if [[ -x "/opt/homebrew/bin/brew" ]]; then
-        # Apple Silicon location
-        brew_path="/opt/homebrew/bin/brew"
-    elif [[ -x "/usr/local/bin/brew" ]]; then
-        # Intel Mac location
-        brew_path="/usr/local/bin/brew"
+    if [[ ! -d "$lib_dir" ]]; then
+        echo "ERROR: Library directory not found: $lib_dir"
+        exit 1
     fi
 
-    if [[ -n "$brew_path" ]]; then
-        already_installed "Homebrew"
-
-        # Make sure it's in PATH for this session
-        if ! command -v brew &>/dev/null; then
-            eval "$($brew_path shellenv)"
-        fi
-
-        # Don't update during bootstrap - can be slow and isn't critical
-        # Brewfile installation will work fine with existing brew version
-    else
-        if [[ "$DRY_RUN" == true ]]; then
-            success "Homebrew package manager"
-        else
-            info "Installing Homebrew..."
-
-            # Install in background so we can show progress
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &
-            local brew_pid=$!
-
-            spinner $brew_pid "Installing Homebrew"
-            wait $brew_pid
-
-            # Add Homebrew to PATH for this session
-            if [[ $(uname -m) == "arm64" ]]; then
-                brew_path="/opt/homebrew/bin/brew"
-            else
-                brew_path="/usr/local/bin/brew"
-            fi
-
-            # Add to PATH for this session only (zshrc already has hardcoded PATH)
-            eval "$($brew_path shellenv)"
-
-            success "Homebrew installed"
-        fi
-    fi
+    source "${lib_dir}/colors.sh"
+    source "${lib_dir}/logger.sh"
+    source "${lib_dir}/ui.sh"
+    source "${lib_dir}/utils.sh"
+    source "${lib_dir}/state.sh"
+    source "${lib_dir}/modules.sh"
 }
 
 # =============================================================================
-# Linux: Package Manager Check
+# First Run Setup
 # =============================================================================
-check_linux_package_manager() {
-    if command -v apt-get &>/dev/null; then
-        PKG_MANAGER="apt"
-        PKG_UPDATE="sudo apt-get update"
-        PKG_INSTALL="sudo apt-get install -y"
-        success "Found package manager: ${BOLD_CYAN}apt${NC}"
-    elif command -v dnf &>/dev/null; then
-        PKG_MANAGER="dnf"
-        PKG_UPDATE="sudo dnf check-update"
-        PKG_INSTALL="sudo dnf install -y"
-        success "Found package manager: ${BOLD_CYAN}dnf${NC}"
-    elif command -v yum &>/dev/null; then
-        PKG_MANAGER="yum"
-        PKG_UPDATE="sudo yum check-update"
-        PKG_INSTALL="sudo yum install -y"
-        success "Found package manager: ${BOLD_CYAN}yum${NC}"
-    elif command -v pacman &>/dev/null; then
-        PKG_MANAGER="pacman"
-        PKG_UPDATE="sudo pacman -Sy"
-        PKG_INSTALL="sudo pacman -S --noconfirm"
-        success "Found package manager: ${BOLD_CYAN}pacman${NC}"
-    else
-        error "No supported package manager found (apt, dnf, yum, or pacman)"
-    fi
-}
 
-# =============================================================================
-# Chezmoi Installation
-# =============================================================================
-install_chezmoi() {
-    info "Checking for chezmoi..."
-
-    if command -v chezmoi &>/dev/null; then
-        already_installed "chezmoi"
-        return
-    fi
-
-    if [[ "$DRY_RUN" == true ]]; then
-        success "chezmoi (dotfiles manager)"
-        return
-    fi
-
-    info "Installing chezmoi..."
-
-    if [[ "$OS" == "macos" ]]; then
-        # Install via Homebrew on macOS
-        brew install chezmoi &>/dev/null
-    elif [[ "$OS" == "linux" ]]; then
-        # Install via package manager or install script on Linux
-        if [[ "$PKG_MANAGER" == "apt" ]]; then
-            # For Debian/Ubuntu, use the install script (more up-to-date)
-            sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" &>/dev/null
-
-            # Add to PATH if not already there
-            if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-                export PATH="$HOME/.local/bin:$PATH"
-                echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-            fi
-        else
-            # Try package manager first, fall back to install script
-            $PKG_INSTALL chezmoi &>/dev/null || sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" &>/dev/null
-        fi
-    fi
-
-    success "chezmoi installed"
-}
-
-# =============================================================================
-# Initialize Dotfiles with Chezmoi
-# =============================================================================
-init_dotfiles() {
-    # Check if chezmoi is already initialized with a valid git repo
-    if [[ -d "$HOME/.local/share/chezmoi/.git" ]]; then
-        warn "Chezmoi already initialized, updating..."
-
-        if [[ "$DRY_RUN" == false ]]; then
-            show_loading "Updating dotfiles" &
-            LOADING_PID=$!
-            chezmoi update &>/dev/null
-            kill_loading
-            success "Dotfiles updated"
-        fi
-    else
-        # If directory exists but isn't a git repo, remove it first
-        if [[ -d "$HOME/.local/share/chezmoi" ]] && [[ "$DRY_RUN" == false ]]; then
-            info "Removing empty chezmoi directory..."
-            rm -rf "$HOME/.local/share/chezmoi"
-        fi
-
-        info "Initializing dotfiles from ${BOLD_CYAN}${DOTFILES_REPO}${NC}"
-
-        if [[ "$DRY_RUN" == true ]]; then
-            success "Clone and apply dotfiles from repository"
-        else
-            # First, just initialize (clone the repo)
-            info "Cloning dotfiles repository..."
-            if ! chezmoi init "$DOTFILES_REPO"; then
-                error "Failed to clone dotfiles repository from ${DOTFILES_REPO}"
-            fi
-            success "Dotfiles repository cloned"
-        fi
-    fi
-}
-
-# =============================================================================
-# macOS: Install Brewfile packages
-# =============================================================================
-install_brew_packages() {
-    local brewfile
-
-    # In dry-run mode, look for Brewfile in current directory
-    if [[ "$DRY_RUN" == true ]]; then
-        if [[ -f "$(dirname "$0")/Brewfile" ]]; then
-            brewfile="$(dirname "$0")/Brewfile"
-        elif [[ -f "$HOME/.local/share/chezmoi/Brewfile" ]]; then
-            brewfile="$HOME/.local/share/chezmoi/Brewfile"
-        else
-            info "Looking for Brewfile in current directory or chezmoi source..."
-            warn "No Brewfile found"
-            return
-        fi
-    else
-        # After initialization, use chezmoi source directory
-        brewfile="$HOME/.local/share/chezmoi/Brewfile"
-
-        if [[ ! -f "$brewfile" ]]; then
-            warn "No Brewfile found at $brewfile"
-            return
-        fi
-    fi
-
-    # Count total packages for progress bar
-    local total=$(grep -c "^brew\|^cask\|^mas" "$brewfile" || echo "0")
-
-    if [[ "$DRY_RUN" == true ]]; then
-        info "Would install ${total} packages from Brewfile:"
-        # Show a sample of what would be installed
-        grep "^brew\|^cask\|^mas" "$brewfile" | head -10 | while IFS= read -r line; do
-            echo -e "  ${DIM}${CYAN}▸${NC} ${DIM}$line${NC}"
-        done
-        if [ "$total" -gt 10 ]; then
-            echo -e "  ${DIM}${CYAN}▸${NC} ${DIM}... and $((total - 10)) more${NC}"
-        fi
-        success "Brewfile packages (${total} packages)"
-        return
-    fi
-
-    info "Installing packages from Brewfile..."
-
-    local current=0
-    local current_package=""
-
-    # Install with progress
-    # Use process substitution to avoid subshell and capture exit code
-    # Temporarily disable exit on error for brew bundle
-    set +e
-    while IFS= read -r line; do
-        # Extract package name from "Installing <package>" or "Using <package>"
-        if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
-            current_package="${BASH_REMATCH[1]}"
-            ((current++))
-            progress_bar $current $total "Installing: $current_package"
-        fi
-    done < <(brew bundle --file="$brewfile" 2>&1)
-
-    local brew_exit_code=$?
-    set -e
-
-    # Ensure progress reaches 100%
-    progress_bar $total $total "Installing Homebrew packages"
-
-    if [ $brew_exit_code -eq 0 ]; then
-        success "Brewfile packages installed (${total} packages)"
-    else
-        warn "Some Brewfile packages failed to install (exit code: $brew_exit_code)"
-        info "You can run 'brew bundle --file=$brewfile' manually to retry"
-    fi
-}
-
-# =============================================================================
-# Linux: Install packages from package list
-# =============================================================================
-install_linux_packages() {
-    local package_file="$HOME/.local/share/chezmoi/Aptfile"
-
-    if [[ ! -f "$package_file" ]]; then
-        # In dry-run, show what would happen even without the file
-        if [[ "$DRY_RUN" == true ]]; then
-            info "Would look for Aptfile at: $package_file"
-        fi
-        warn "No Aptfile found at $package_file"
-        info "You may need to install packages manually"
-        return
-    fi
-
-    # Count packages
-    local total=$(grep -v "^#\|^$" "$package_file" | wc -l)
-
-    if [[ "$DRY_RUN" == true ]]; then
-        info "Would install ${total} packages from Aptfile:"
-        # Show a sample of what would be installed
-        grep -v "^#\|^$" "$package_file" | head -10 | while IFS= read -r package; do
-            [[ -z "$package" ]] && continue
-            echo -e "  ${DIM}${CYAN}▸${NC} ${DIM}$package${NC}"
-        done
-        if [ "$total" -gt 10 ]; then
-            echo -e "  ${DIM}${CYAN}▸${NC} ${DIM}... and $((total - 10)) more${NC}"
-        fi
-        success "Aptfile packages (${total} packages)"
-        return
-    fi
-
-    info "Installing packages from Aptfile..."
-
-    local current=0
-    local failed=0
-
-    while IFS= read -r package; do
-        # Skip comments and empty lines
-        [[ "$package" =~ ^#.*$ ]] && continue
-        [[ -z "$package" ]] && continue
-
-        ((current++))
-        progress_bar $current $total "Installing: $package"
-
-        if ! $PKG_INSTALL "$package" &>/dev/null; then
-            ((failed++))
-        fi
-    done < "$package_file"
-
-    if [ $failed -eq 0 ]; then
-        success "All packages installed (${total} packages)"
-    else
-        warn "${failed} packages failed to install, check logs"
-    fi
-}
-
-# =============================================================================
-# Summary Report
-# =============================================================================
-print_summary() {
-    local end_time=$(date +%s)
-    local elapsed=$((end_time - START_TIME))
-    local minutes=$((elapsed / 60))
-    local seconds=$((elapsed % 60))
-
-    echo ""
-    echo ""
-
-    # Completion box
-    if [[ "$DRY_RUN" == true ]]; then
-        print_box_border "top" "$BOLD_BLUE"
-        print_box_line " ${BOLD_WHITE}DRY RUN PREVIEW COMPLETE!${NC}  ${OS_ICON}" "$BOLD_BLUE"
-        print_box_border "bottom" "$BOLD_BLUE"
-    else
-        print_box_border "top" "$BOLD_GREEN"
-        print_box_line " ${BOLD_WHITE}INSTALLATION COMPLETE!${NC}  ${OS_ICON}" "$BOLD_GREEN"
-        print_box_border "bottom" "$BOLD_GREEN"
-    fi
-    echo ""
-
-    # Time elapsed
-    echo -e "${BOLD_CYAN}  Time Elapsed:${NC} ${minutes}m ${seconds}s"
-    echo ""
-
-    # Next steps box
-    print_box_header "Next Steps" "$BOLD_CYAN"
-    print_box_line "" "$BOLD_CYAN"
-
-    if [[ "$DRY_RUN" == true ]]; then
-        print_box_line " ${BOLD_WHITE}1.${NC} Run without --dry-run to perform actual installation:" "$BOLD_CYAN"
-        print_box_line "    ${CYAN}./bootstrap.sh${NC}" "$BOLD_CYAN"
-        print_box_line "" "$BOLD_CYAN"
-    fi
-
-    if [[ "$DRY_RUN" == true ]]; then
-        local step_num="2"
-    else
-        local step_num="1"
-    fi
-    print_box_line " ${BOLD_WHITE}${step_num}.${NC} Restart your terminal or run:" "$BOLD_CYAN"
-
-    if [[ "$OS" == "macos" ]]; then
-        print_box_line "    ${CYAN}source ~/.zshrc${NC}" "$BOLD_CYAN"
-    else
-        print_box_line "    ${CYAN}source ~/.bashrc${NC} or ${CYAN}source ~/.zshrc${NC}" "$BOLD_CYAN"
-    fi
-
-    print_box_line "" "$BOLD_CYAN"
-
-    if [[ "$DRY_RUN" == true ]]; then
-        step_num="3"
-    else
-        step_num="2"
-    fi
-    print_box_line " ${BOLD_WHITE}${step_num}.${NC} Review pending changes:" "$BOLD_CYAN"
-    print_box_line "    ${CYAN}chezmoi diff${NC}" "$BOLD_CYAN"
-    print_box_line "" "$BOLD_CYAN"
-
-    if [[ "$DRY_RUN" == true ]]; then
-        step_num="4"
-    else
-        step_num="3"
-    fi
-    print_box_line " ${BOLD_WHITE}${step_num}.${NC} Apply any remaining changes:" "$BOLD_CYAN"
-    print_box_line "    ${CYAN}chezmoi apply${NC}" "$BOLD_CYAN"
-    print_box_line "" "$BOLD_CYAN"
-    print_box_border "bottom" "$BOLD_CYAN"
-    echo ""
-
-    if [[ "$DRY_RUN" == false ]]; then
-        if [[ "$OS" == "macos" ]]; then
-            warn "You may need to ${BOLD_YELLOW}restart your Mac${NC} for all changes to take effect"
-        else
-            warn "You may need to ${BOLD_YELLOW}log out and back in${NC} for all changes to take effect"
-        fi
-    fi
-
-    echo ""
-    echo -e "${DIM}${CYAN}Thank you for using Dotfiles 2.0!${NC}"
-    echo ""
-}
-
-# =============================================================================
-# Main
-# =============================================================================
-main() {
+run_first_time_setup() {
     print_banner
 
-    # Detect OS and set total steps
-    detect_os
-
-    if [[ "$OS" == "macos" ]]; then
-        TOTAL_STEPS=8  # Includes potential "Configuring Personal Information" step
-    else
-        TOTAL_STEPS=7  # Includes potential "Configuring Personal Information" step
-    fi
-
-    # Separator
-    echo ""
-    echo -e "${DIM}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-    # Step 1: OS Detection
-    print_step "Operating System Detection"
-    # Already done in detect_os() above
-
-    # Step 2: Sudo access
-    print_step "Requesting Administrative Access"
     if [[ "$DRY_RUN" == true ]]; then
-        skipped "Sudo access check (skipped in dry-run)"
-    else
-        info "Requesting sudo access..."
-        sudo -v
-        success "Sudo access granted"
-
-        # Keep sudo alive in the background
-        # This runs every 50 seconds (well before the 5-minute timeout)
-        PARENT_PID=$$
-        (while true; do
-            sleep 50
-            # Check if parent process still exists, exit if not
-            if ! kill -0 "$PARENT_PID" 2>/dev/null; then
-                exit
-            fi
-            sudo -n true
-        done) &
-        SUDO_KEEPALIVE_PID=$!
-    fi
-
-    # Platform-specific steps
-    if [[ "$OS" == "macos" ]]; then
-        # macOS-specific setup
-        print_step "Installing Xcode Command Line Tools"
-        install_xcode_cli
-
-        print_step "Installing Homebrew Package Manager"
-        install_homebrew
-
-        print_step "Installing Chezmoi"
-        install_chezmoi
-
-        print_step "Configuring Personal Information"
-        info "Chezmoi templates need some personal information..."
+        draw_box "⚠  DRY RUN MODE - NO CHANGES WILL BE MADE  ⚠" 71 "$WARN"
         echo ""
-
-        # Prompt for user information
-        # Redirect from /dev/tty to allow interactive input even when piped
-        read -p "  Enter your full name: " user_name < /dev/tty
-        read -p "  Enter your email address: " user_email < /dev/tty
-        read -p "  Enter your GitHub username: " github_user < /dev/tty
-        read -p "  Machine type (personal/work) [personal]: " machine_type < /dev/tty
-        machine_type=${machine_type:-personal}
-
-        success "Personal information collected"
-
-        print_step "Initializing Dotfiles"
-        init_dotfiles
-
-        # Generate .gitconfig directly (not managed by chezmoi templates)
-        if [[ ! -f "$HOME/.gitconfig" ]]; then
-            info "Creating .gitconfig with your information..."
-            cat > "$HOME/.gitconfig" <<EOF
-[user]
-    name = $user_name
-    email = $user_email
-
-[init]
-    defaultBranch = main
-
-[core]
-    editor = nvim
-    pager = delta
-    excludesfile = ~/.gitignore_global
-    autocrlf = input
-
-[interactive]
-    diffFilter = delta --color-only
-
-[delta]
-    navigate = true
-    light = false
-    side-by-side = true
-    line-numbers = true
-
-[merge]
-    conflictstyle = diff3
-
-[diff]
-    colorMoved = default
-
-[pull]
-    rebase = true
-
-[push]
-    autoSetupRemote = true
-    default = current
-
-[fetch]
-    prune = true
-
-[rebase]
-    autoStash = true
-
-[alias]
-    # Status
-    s = status -sb
-
-    # Logging
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-    ll = log --oneline -n 20
-
-    # Branching
-    co = checkout
-    cob = checkout -b
-    br = branch
-    bra = branch -a
-
-    # Committing
-    cm = commit -m
-    ca = commit --amend
-    can = commit --amend --no-edit
-
-    # Diffing
-    d = diff
-    ds = diff --staged
-
-    # Stashing
-    st = stash
-    stp = stash pop
-    stl = stash list
-
-    # Undo
-    undo = reset HEAD~1 --mixed
-    unstage = reset HEAD --
-
-    # Cleanup
-    cleanup = "!git branch --merged | grep -v '\\\\*\\\\|main\\\\|master' | xargs -n 1 git branch -d"
-
-[credential]
-    helper = osxkeychain
-
-[github]
-    user = $github_user
-EOF
-
-            # Add work-specific config if needed
-            if [[ "$machine_type" == "work" ]]; then
-                cat >> "$HOME/.gitconfig" <<EOF
-
-# Work-specific git config
-[url "git@github.com:"]
-    insteadOf = https://github.com/
-EOF
-            fi
-
-            success "Created .gitconfig"
-        else
-            info ".gitconfig already exists, skipping"
-        fi
-
-        # Apply dotfiles now (before Brewfile installation)
-        info "Applying dotfiles..."
-        if chezmoi apply; then
-            success "All dotfiles applied successfully"
-        else
-            warn "Some dotfiles could not be applied"
-        fi
-
-        print_step "Installing Brewfile Packages"
-        install_brew_packages
-
-    elif [[ "$OS" == "linux" ]]; then
-        # Linux-specific setup
-        print_step "Detecting Package Manager"
-        check_linux_package_manager
-
-        if [[ "$DRY_RUN" == false ]]; then
-            info "Updating package database..."
-            show_loading "Running package manager update" &
-            LOADING_PID=$!
-            $PKG_UPDATE &>/dev/null || true
-            kill_loading
-            success "Package database updated"
-        else
-            skipped "Package database update (skipped in dry-run)"
-        fi
-
-        print_step "Installing Chezmoi"
-        install_chezmoi
-
-        print_step "Initializing Dotfiles"
-        init_dotfiles
-
-        print_step "Installing Linux Packages"
-        install_linux_packages
     fi
+
+    log_section "FIRST TIME SETUP"
+
+    log_info "Welcome to Dotfiles 3.0!"
+    log_info "This will set up your development environment"
+    echo ""
+
+    # Discover available modules
+    log_info "Scanning available modules..."
+    module_discover
+
+    local all_modules=($(module_list_all))
+    local module_count=${#all_modules[@]}
+
+    if [[ $module_count -eq 0 ]]; then
+        log_error "No modules discovered!"
+        return 1
+    fi
+
+    log_success "Found ${module_count} module(s) for your system"
+    echo ""
+
+    # Show installation plan
+    log_info "The following modules will be installed:"
+    echo ""
+
+    module_display_status
+
+    # Confirm unless non-interactive
+    if [[ "$NON_INTERACTIVE" == false && "$DRY_RUN" == false ]]; then
+        echo -ne "${TEXT}Press ${BOLD}ENTER${NC}${TEXT} to begin installation or ${BOLD}Ctrl+C${NC}${TEXT} to cancel${NC} "
+        read -r
+    fi
+
+    echo ""
+
+    # Request sudo upfront
+    if [[ "$DRY_RUN" == false ]]; then
+        log_section "SYSTEM ACCESS"
+        log_info "Some operations require administrator privileges"
+        request_sudo
+        log_success "Administrator access granted"
+    fi
+
+    # Check if user config is needed
+    if ! user_config_is_complete; then
+        log_section "USER CONFIGURATION"
+        if [[ "$NON_INTERACTIVE" == true ]]; then
+            log_warn "Non-interactive mode: using default user configuration"
+        else
+            user_config_prompt
+        fi
+    fi
+
+    # Sort modules by execution order
+    local sorted_modules=($(module_sort_by_order "${all_modules[@]}"))
+
+    # Install all modules
+    log_section "MODULE INSTALLATION"
+
+    local installed=0
+    local failed=0
+
+    for module in "${sorted_modules[@]}"; do
+        if [[ "$DRY_RUN" == true ]]; then
+            log_info "Would install: $(module_get_name "$module")"
+            ((installed++))
+        else
+            if module_install "$module"; then
+                ((installed++))
+            else
+                ((failed++))
+            fi
+        fi
+    done
 
     # Summary
-    print_summary
+    echo ""
+    if [[ "$DRY_RUN" == true ]]; then
+        log_summary "DRY_RUN"
+    elif [[ $failed -eq 0 ]]; then
+        log_summary "SUCCESS"
+    else
+        log_summary "SUCCESS_WITH_ERRORS"
+    fi
+
+    # Next steps
+    show_next_steps
 }
 
-# Cleanup on exit
-cleanup() {
-    kill_loading
-    # Kill sudo keepalive process if it exists
-    if [ ! -z "$SUDO_KEEPALIVE_PID" ]; then
-        kill $SUDO_KEEPALIVE_PID 2>/dev/null
+# =============================================================================
+# Maintenance Mode
+# =============================================================================
+
+run_maintenance_mode() {
+    print_banner
+
+    log_section "MAINTENANCE MODE"
+
+    # Discover modules
+    module_discover
+
+    while true; do
+        echo ""
+        display_maintenance_menu
+
+        read -r choice
+
+        case "$choice" in
+            1)
+                handle_refresh_all
+                ;;
+            2)
+                handle_update_packages
+                ;;
+            3)
+                handle_reconfigure_module
+                ;;
+            4)
+                handle_remove_module
+                ;;
+            5)
+                handle_show_status
+                ;;
+            6)
+                handle_show_logs
+                ;;
+            7)
+                log_info "Exiting..."
+                break
+                ;;
+            *)
+                log_warn "Invalid choice: $choice"
+                ;;
+        esac
+    done
+
+    echo ""
+    log_info "Maintenance mode complete"
+}
+
+# Maintenance handlers
+handle_refresh_all() {
+    log_section "REFRESH ALL"
+
+    log_info "Pulling latest dotfiles..."
+    bootstrap_clone_repo
+
+    log_info "Reconfiguring all installed modules..."
+
+    local all_modules=($(state_list_installed))
+
+    for module in "${all_modules[@]}"; do
+        log_module_start "$module"
+        if module_exec "$module" "reconfigure"; then
+            log_success "$(module_get_name "$module") reconfigured"
+        else
+            log_error "$(module_get_name "$module") reconfiguration failed"
+        fi
+        log_module_end
+    done
+
+    log_success "Refresh complete"
+}
+
+handle_update_packages() {
+    log_section "UPDATE PACKAGES"
+
+    # This would handle Brewfile updates
+    log_info "Package updates not yet implemented"
+    log_info "Run: brew upgrade"
+}
+
+handle_reconfigure_module() {
+    log_section "RECONFIGURE MODULE"
+
+    local all_modules=($(module_list_all))
+
+    echo ""
+    echo -e "${TEXT}Available modules:${NC}"
+    echo ""
+
+    local i=1
+    local -a menu_modules=()
+    for module in "${all_modules[@]}"; do
+        local name=$(module_get_name "$module")
+        local status="not installed"
+
+        if state_is_installed "$module"; then
+            status="installed"
+        fi
+
+        echo -e "  ${INFO}[${i}]${NC} ${TEXT}${name}${NC} ${DIM}(${status})${NC}"
+        menu_modules+=("$module")
+        ((i++))
+    done
+
+    echo ""
+    echo -ne "${DIM}Choice [1-${#menu_modules[@]}]:${NC} "
+    read -r choice
+
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#menu_modules[@]} ]]; then
+        local selected_module="${menu_modules[$((choice - 1))]}"
+
+        log_module_start "$selected_module"
+        if module_exec "$selected_module" "reconfigure"; then
+            log_success "$(module_get_name "$selected_module") reconfigured"
+        else
+            log_error "Reconfiguration failed"
+        fi
+        log_module_end
+    else
+        log_warn "Invalid choice"
     fi
 }
-trap 'cleanup' EXIT
 
-# Run main function
+handle_remove_module() {
+    log_section "REMOVE MODULE"
+    log_info "Module removal not yet implemented"
+}
+
+handle_show_status() {
+    log_section "INSTALLATION STATUS"
+    echo ""
+    module_display_status
+}
+
+handle_show_logs() {
+    log_section "LOGS"
+
+    echo ""
+    echo -e "${TEXT}Log options:${NC}"
+    echo -e "  ${INFO}[1]${NC} ${TEXT}View full log${NC}"
+    echo -e "  ${INFO}[2]${NC} ${TEXT}View errors only${NC}"
+    echo -e "  ${INFO}[3]${NC} ${TEXT}Tail log (live)${NC}"
+    echo ""
+    echo -ne "${DIM}Choice [1-3]:${NC} "
+    read -r choice
+
+    case "$choice" in
+        1) log_show | less ;;
+        2) log_show_errors | less ;;
+        3) log_tail ;;
+        *) log_warn "Invalid choice" ;;
+    esac
+}
+
+# =============================================================================
+# Next Steps Display
+# =============================================================================
+
+show_next_steps() {
+    local width=67
+
+    echo ""
+    echo -e "${SECTION}┌$(printf '─%.0s' $(seq 1 $width))┐${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}Next Steps${NC}$(printf '%*s' $((width - 12)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}├$(printf '─%.0s' $(seq 1 $width))┤${NC}"
+    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}1.${NC} Restart your terminal or run:$(printf '%*s' $((width - 33)) '')${SECTION}│${NC}"
+
+    if is_macos; then
+        echo -e "${SECTION}│${NC}    ${INFO}source ~/.zshrc${NC}$(printf '%*s' $((width - 21)) '')${SECTION}│${NC}"
+    else
+        echo -e "${SECTION}│${NC}    ${INFO}source ~/.bashrc${NC} or ${INFO}source ~/.zshrc${NC}$(printf '%*s' $((width - 42)) '')${SECTION}│${NC}"
+    fi
+
+    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} View the log:$(printf '%*s' $((width - 17)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}$(printf '%*s' $((width - 35)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} Run bootstrap again for maintenance mode:$(printf '%*s' $((width - 47)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}$(printf '%*s' $((width - 43)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
+    echo -e "${SECTION}└$(printf '─%.0s' $(seq 1 $width))┘${NC}"
+    echo ""
+}
+
+# =============================================================================
+# Main Entry Point
+# =============================================================================
+
+main() {
+    # Parse arguments first (before loading libs, for --help)
+    parse_args "$@"
+
+    # Handle remote installation
+    if is_remote_install; then
+        # Minimal setup before cloning
+        echo "Dotfiles 3.0 - Remote Installation"
+        echo ""
+
+        # Create dotfiles home
+        mkdir -p "${DOTFILES_HOME}"
+
+        # Clone repository
+        echo "Cloning repository..."
+        if ! git clone "${DOTFILES_REPO}" "${DOTFILES_REPO_DIR}"; then
+            echo "ERROR: Failed to clone repository"
+            exit 1
+        fi
+
+        # Re-execute from cloned repo
+        exec "${DOTFILES_REPO_DIR}/bootstrap.sh" "$@"
+    fi
+
+    # Load all libraries
+    bootstrap_load_libs
+
+    # Initialize systems
+    log_init
+    state_init
+    detect_os
+
+    # Handle log-viewing actions
+    case "$ACTION" in
+        show-log)
+            log_show
+            exit 0
+            ;;
+        show-errors)
+            log_show_errors
+            exit 0
+            ;;
+        clear-log)
+            log_clear
+            exit 0
+            ;;
+    esac
+
+    # Determine mode: first run or maintenance
+    if state_is_first_run; then
+        run_first_time_setup
+    else
+        # Update metadata
+        state_update_metadata
+
+        # Run maintenance mode
+        run_maintenance_mode
+    fi
+
+    # Cleanup
+    kill_sudo_keepalive 2>/dev/null || true
+}
+
+# Run main
 main "$@"

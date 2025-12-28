@@ -224,8 +224,8 @@ module_exec() {
         return 1
     fi
 
-    # Pass BOOT_START_MS to child process
-    BOOT_START_MS="${BOOT_START_MS}" bash "$script" "$action"
+    # Execute module script
+    bash "$script" "$action"
     return $?
 }
 

@@ -361,10 +361,11 @@ user_config_prompt() {
 
 # Check if user config is complete
 user_config_is_complete() {
-    local name=$(user_config_get "USER_FULL_NAME")
-    local email=$(user_config_get "USER_EMAIL")
+    local name=$(user_config_get "USER_FULL_NAME" 2>/dev/null || echo "")
+    local email=$(user_config_get "USER_EMAIL" 2>/dev/null || echo "")
 
     [[ -n "$name" && -n "$email" ]]
+    return $?
 }
 
 # =============================================================================

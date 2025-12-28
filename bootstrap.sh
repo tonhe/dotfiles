@@ -656,6 +656,8 @@ install_brew_packages() {
 
     # Install with progress
     # Use process substitution to avoid subshell and capture exit code
+    # Temporarily disable exit on error for brew bundle
+    set +e
     while IFS= read -r line; do
         # Extract package name from "Installing <package>" or "Using <package>"
         if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
@@ -666,6 +668,7 @@ install_brew_packages() {
     done < <(brew bundle --file="$brewfile" 2>&1)
 
     local brew_exit_code=$?
+    set -e
 
     # Ensure progress reaches 100%
     progress_bar $total $total "Installing Homebrew packages"

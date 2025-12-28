@@ -31,28 +31,11 @@ ensure_brew_path() {
     return 0
 }
 
-# Mark critical packages as installed in state
-mark_critical_packages() {
-    local -a critical_packages=("git" "neovim" "node" "npm" "tmux" "zsh")
-    for pkg in "${critical_packages[@]}"; do
-        if command -v "$pkg" &>/dev/null; then
-            # Only mark if not already in state
-            if ! state_is_installed "$pkg"; then
-                local version=$("$pkg" --version 2>/dev/null | head -1 || echo "installed")
-                state_mark_installed "$pkg" "$version"
-            fi
-        fi
-    done
-}
-
 # =============================================================================
 # Module Functions
 # =============================================================================
 
 is_installed() {
-    # Always mark critical packages when checking if brewfile is installed
-    mark_critical_packages
-
     # Brewfile can never be "detected" on the system - it must always install
     # This ensures install() runs during first-time setup
     # The state file check (in module_install) will skip it on subsequent runs
@@ -91,9 +74,6 @@ install() {
         log_info "Continuing with successfully installed packages..."
         # Don't fail - partial installation is acceptable
     fi
-
-    # Mark individual packages that other modules depend on
-    mark_critical_packages
 
     # Save state
     cat > "$state_file" <<EOF

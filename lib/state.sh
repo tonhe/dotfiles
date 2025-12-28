@@ -88,7 +88,8 @@ state_is_first_run() {
 # Get state file path for a module
 state_get_file() {
     local module="$1"
-    echo "${STATE_DIR}/${module}.json"
+    local dotfiles_home="${DOTFILES_HOME:-${HOME}/.dotfiles}"
+    echo "${dotfiles_home}/state/${module}.json"
 }
 
 # Check if module state exists
@@ -119,7 +120,8 @@ state_set() {
     local module="$1"
     local status="$2"
     local version="${3:-}"
-    local metadata="${4:-{}}"
+    local metadata="${4}"
+    [[ -z "$metadata" ]] && metadata="{}"
     local state_file=$(state_get_file "$module")
 
     # Determine dates
@@ -152,7 +154,8 @@ EOF
 state_mark_installed() {
     local module="$1"
     local version="${2:-unknown}"
-    local metadata="${3:-{}}"
+    local metadata="${3}"
+    [[ -z "$metadata" ]] && metadata="{}"
 
     state_set "$module" "installed" "$version" "$metadata"
 }

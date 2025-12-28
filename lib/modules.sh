@@ -16,6 +16,7 @@ fi
 # =============================================================================
 # Configuration
 # =============================================================================
+DOTFILES_HOME="${DOTFILES_HOME:-${HOME}/.dotfiles}"
 MODULES_DIR="${DOTFILES_HOME}/repo/scripts"
 MODULES_CACHE="${DOTFILES_HOME}/.modules_cache"
 

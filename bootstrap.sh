@@ -26,7 +26,7 @@ set -e
 # Bootstrap Configuration
 # =============================================================================
 DOTFILES_REPO="https://github.com/tonhe/dotfiles.git"
-DOTFILES_HOME="${HOME}/.dotfiles"
+export DOTFILES_HOME="${HOME}/.dotfiles"
 DOTFILES_REPO_DIR="${DOTFILES_HOME}/repo"
 
 # Runtime flags

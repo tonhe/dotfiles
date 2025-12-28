@@ -6,9 +6,17 @@
 # Source colors if not already loaded
 if [[ -z "${NORD0}" ]]; then
     if [[ -z "${SCRIPT_DIR}" ]]; then
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")"
+        # Get the directory containing this script
+        local source_file="${BASH_SOURCE[0]}"
+        if [[ -n "$source_file" ]]; then
+            SCRIPT_DIR="$(cd "$(dirname "$source_file")" 2>/dev/null && pwd)"
+        fi
+        # Fallback to hardcoded path if dynamic detection fails
+        if [[ -z "${SCRIPT_DIR}" ]] || [[ ! -d "${SCRIPT_DIR}" ]]; then
+            SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
+        fi
     fi
-    [[ -n "${SCRIPT_DIR}" ]] && source "${SCRIPT_DIR}/colors.sh"
+    [[ -n "${SCRIPT_DIR}" ]] && [[ -d "${SCRIPT_DIR}" ]] && source "${SCRIPT_DIR}/colors.sh"
 fi
 
 # =============================================================================

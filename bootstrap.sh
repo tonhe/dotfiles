@@ -897,12 +897,14 @@ main() {
         print_step "Initializing Dotfiles"
         init_dotfiles
 
-        # Create .chezmoidata.toml in the chezmoi source directory after cloning
-        if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoidata.toml" ]]; then
-            cat > "$HOME/.local/share/chezmoi/.chezmoidata.toml" <<EOF
-# Chezmoi template data
+        # Create .chezmoi.toml.tmpl in the chezmoi source directory after cloning
+        # This file uses the [data] section to store template variables
+        if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoi.toml.tmpl" ]]; then
+            cat > "$HOME/.local/share/chezmoi/.chezmoi.toml.tmpl" <<EOF
+# Chezmoi configuration and template data
 # This file is gitignored to keep your personal info private
 
+[data]
 name = "$user_name"
 email = "$user_email"
 github_username = "$github_user"

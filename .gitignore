@@ -1,4 +1,4 @@
 /.claude
 
 # Keep personal data out of public repo
-.chezmoidata.toml
+.chezmoi.toml.tmpl

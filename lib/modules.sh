@@ -329,6 +329,27 @@ module_install() {
         return 0
     fi
 
+    # Check if dependencies are satisfied
+    local deps_str=$(module_get_deps "$module")
+    local -a deps=($deps_str)
+    for dep in "${deps[@]}"; do
+        [[ -z "$dep" ]] && continue
+
+        if state_is_failed "$dep"; then
+            log_error "${display_name} skipped: dependency '${dep}' failed"
+            state_mark_failed "$module" "Dependency failed: ${dep}"
+            log_module_end
+            return 1
+        fi
+
+        if ! state_is_installed "$dep"; then
+            log_error "${display_name} skipped: dependency '${dep}' not installed"
+            state_mark_failed "$module" "Missing dependency: ${dep}"
+            log_module_end
+            return 1
+        fi
+    done
+
     if module_is_installed "$module"; then
         local version=$(module_get_version "$module")
         log_info "${display_name} detected on system"

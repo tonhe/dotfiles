@@ -12,9 +12,6 @@ MODULE_DEPS=("homebrew")
 MODULE_ORDER=25
 MODULE_CATEGORY="system"
 
-STATE_FILE="${DOTFILES_HOME}/state/brewfile.json"
-BREWFILE="${DOTFILES_HOME}/repo/Brewfile"
-
 # =============================================================================
 # Helper Functions
 # =============================================================================
@@ -39,12 +36,14 @@ ensure_brew_path() {
 # =============================================================================
 
 is_installed() {
-    [[ -f "$STATE_FILE" ]]
+    local state_file="${DOTFILES_HOME}/state/brewfile.json"
+    [[ -f "$state_file" ]]
 }
 
 get_version() {
+    local state_file="${DOTFILES_HOME}/state/brewfile.json"
     if is_installed; then
-        local install_date=$(json_get "$STATE_FILE" "['installed_date']" 2>/dev/null || echo "")
+        local install_date=$(json_get "$state_file" "['installed_date']" 2>/dev/null || echo "")
         echo "${install_date:-installed}"
     else
         echo "not installed"
@@ -52,33 +51,36 @@ get_version() {
 }
 
 install() {
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+    local state_file="${DOTFILES_HOME}/state/brewfile.json"
+
     ensure_brew_path
 
-    if [[ ! -f "$BREWFILE" ]]; then
-        log_error "Brewfile not found at ${BREWFILE}"
+    if [[ ! -f "$brewfile" ]]; then
+        log_error "Brewfile not found at ${brewfile}"
         return 1
     fi
 
     log_info "Installing packages from Brewfile..."
     start_spinner "Running brew bundle"
 
-    if brew bundle --file="$BREWFILE" --no-lock &>/dev/null; then
+    if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
         stop_spinner
         log_success "Brewfile packages installed"
     else
         stop_spinner
         log_warn "Some packages may have failed to install"
-        log_info "Run 'brew bundle --file=$BREWFILE' for details"
+        log_info "Run 'brew bundle --file=$brewfile' for details"
         return 1
     fi
 
     # Save state
-    cat > "$STATE_FILE" <<EOF
+    cat > "$state_file" <<EOF
 {
   "module": "brewfile",
   "status": "installed",
   "installed_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-  "brewfile": "${BREWFILE}"
+  "brewfile": "${brewfile}"
 }
 EOF
 
@@ -86,11 +88,13 @@ EOF
 }
 
 uninstall() {
+    local state_file="${DOTFILES_HOME}/state/brewfile.json"
+
     log_warn "Brewfile uninstall not supported"
     log_info "Packages remain installed but state will be cleared"
 
-    if [[ -f "$STATE_FILE" ]]; then
-        rm -f "$STATE_FILE"
+    if [[ -f "$state_file" ]]; then
+        rm -f "$state_file"
         log_success "State cleared"
     fi
 
@@ -98,16 +102,18 @@ uninstall() {
 }
 
 reconfigure() {
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+
     log_info "Updating packages from Brewfile..."
     ensure_brew_path
 
-    if [[ ! -f "$BREWFILE" ]]; then
-        log_error "Brewfile not found at ${BREWFILE}"
+    if [[ ! -f "$brewfile" ]]; then
+        log_error "Brewfile not found at ${brewfile}"
         return 1
     fi
 
     start_spinner "Running brew bundle"
-    if brew bundle --file="$BREWFILE" --no-lock &>/dev/null; then
+    if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
         stop_spinner
         log_success "Brewfile packages updated"
         return 0
@@ -119,6 +125,8 @@ reconfigure() {
 }
 
 verify() {
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+
     if ! is_installed; then
         log_warn "Brewfile has not been run"
         return 1
@@ -126,8 +134,8 @@ verify() {
 
     ensure_brew_path
 
-    if [[ ! -f "$BREWFILE" ]]; then
-        log_warn "Brewfile not found at ${BREWFILE}"
+    if [[ ! -f "$brewfile" ]]; then
+        log_warn "Brewfile not found at ${brewfile}"
         return 1
     fi
 

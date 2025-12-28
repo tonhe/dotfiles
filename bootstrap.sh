@@ -97,6 +97,18 @@ EXAMPLES:
     # View recent errors
     ./bootstrap.sh --show-errors
 
+MAINTENANCE:
+    After initial setup, run bootstrap again to enter maintenance mode:
+
+    ./bootstrap.sh
+
+    Maintenance features:
+    - Refresh all (pull latest changes + reconfigure all modules)
+    - Update Brewfile packages
+    - Reconfigure specific modules (dotfiles backed up automatically)
+    - Uninstall modules
+    - View installation status and logs
+
 REMOTE INSTALLATION:
     curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/main/bootstrap.sh | bash
 
@@ -321,6 +333,24 @@ run_maintenance_mode() {
     log_info "Maintenance mode complete"
 }
 
+# Maintenance menu display
+display_maintenance_menu() {
+    echo ""
+    echo -e "${SECTION}╔═══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${SECTION}║${NC} ${BRIGHT}Dotfiles Maintenance Menu${NC}                                         ${SECTION}║${NC}"
+    echo -e "${SECTION}╚═══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${INFO}[1]${NC} ${TEXT}Refresh all (pull latest + reconfigure all modules)${NC}"
+    echo -e "${INFO}[2]${NC} ${TEXT}Update Brewfile packages${NC}"
+    echo -e "${INFO}[3]${NC} ${TEXT}Reconfigure specific module${NC}"
+    echo -e "${INFO}[4]${NC} ${TEXT}Remove/uninstall module${NC}"
+    echo -e "${INFO}[5]${NC} ${TEXT}Show installation status${NC}"
+    echo -e "${INFO}[6]${NC} ${TEXT}View logs${NC}"
+    echo -e "${INFO}[7]${NC} ${TEXT}Exit${NC}"
+    echo ""
+    echo -ne "${DIM}Choice [1-7]:${NC} "
+}
+
 # Maintenance handlers
 handle_refresh_all() {
     log_section "REFRESH ALL"
@@ -348,9 +378,19 @@ handle_refresh_all() {
 handle_update_packages() {
     log_section "UPDATE PACKAGES"
 
-    # This would handle Brewfile updates
-    log_info "Package updates not yet implemented"
-    log_info "Run: brew upgrade"
+    if ! module_exists "brewfile"; then
+        log_error "Brewfile module not found"
+        return 1
+    fi
+
+    log_info "Running Brewfile reconfigure to update packages..."
+    log_module_start "brewfile"
+    if module_exec "brewfile" "reconfigure"; then
+        log_success "Brewfile packages updated"
+    else
+        log_error "Brewfile update failed"
+    fi
+    log_module_end
 }
 
 handle_reconfigure_module() {
@@ -398,7 +438,52 @@ handle_reconfigure_module() {
 
 handle_remove_module() {
     log_section "REMOVE MODULE"
-    log_info "Module removal not yet implemented"
+
+    local installed_modules=($(state_list_installed))
+
+    if [[ ${#installed_modules[@]} -eq 0 ]]; then
+        log_warn "No installed modules found"
+        return 1
+    fi
+
+    echo ""
+    echo -e "${TEXT}Installed modules:${NC}"
+    echo ""
+
+    local i=1
+    for module in "${installed_modules[@]}"; do
+        local name=$(module_get_name "$module")
+        echo -e "  ${INFO}[${i}]${NC} ${TEXT}${name}${NC}"
+        ((i++))
+    done
+
+    echo ""
+    echo -ne "${DIM}Module to uninstall [1-${#installed_modules[@]}]:${NC} "
+    read -r choice
+
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#installed_modules[@]} ]]; then
+        local selected_module="${installed_modules[$((choice - 1))]}"
+        local module_name=$(module_get_name "$selected_module")
+
+        echo ""
+        echo -ne "${WARN}Really uninstall ${module_name}? (y/N):${NC} "
+        read -r confirm
+
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            log_module_start "$selected_module"
+            if module_exec "$selected_module" "uninstall"; then
+                state_remove "$selected_module"
+                log_success "${module_name} uninstalled"
+            else
+                log_error "Uninstall failed"
+            fi
+            log_module_end
+        else
+            log_info "Cancelled"
+        fi
+    else
+        log_warn "Invalid choice"
+    fi
 }
 
 handle_show_status() {
@@ -440,11 +525,11 @@ show_next_steps() {
     echo -e "${SECTION}│${NC} ${BRIGHT}1.${NC} Restart your terminal or run:                                ${SECTION}│${NC}"
     echo -e "${SECTION}│${NC}    ${INFO}source ~/.zshrc${NC}                                                ${SECTION}│${NC}"
     echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} View the log:                                                 ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}                                 ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} Run bootstrap again for maintenance mode:                     ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} Run bootstrap again to enter maintenance mode:                  ${SECTION}│${NC}"
     echo -e "${SECTION}│${NC}    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}                         ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} View the log:                                                 ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}                                 ${SECTION}│${NC}"
     echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
     echo -e "${SECTION}└───────────────────────────────────────────────────────────────────┘${NC}"
     echo ""

@@ -600,19 +600,8 @@ init_dotfiles() {
             fi
             success "Dotfiles repository cloned"
 
-            # Then apply the dotfiles
-            info "Applying dotfiles to home directory..."
-            echo ""
-
-            # Apply dotfiles and show progress
-            # Note: chezmoi apply outputs actions it's taking, we don't suppress it
-            if ! chezmoi apply 2>&1 | grep -E "^(\.|\+|running|skipping)" | sed 's/^/  /'; then
-                echo ""
-                warn "Some dotfiles could not be applied. You may need to run 'chezmoi apply' manually."
-            else
-                echo ""
-                success "Dotfiles applied successfully"
-            fi
+            # Don't apply yet - we'll do that after creating .chezmoidata.toml
+            # This just clones the repo
         fi
     fi
 }
@@ -882,24 +871,25 @@ main() {
         print_step "Installing Chezmoi"
         install_chezmoi
 
+        print_step "Configuring Personal Information"
+        info "Chezmoi templates need some personal information..."
+        echo ""
+
+        # Prompt for user information
+        # Redirect from /dev/tty to allow interactive input even when piped
+        read -p "  Enter your full name: " user_name < /dev/tty
+        read -p "  Enter your email address: " user_email < /dev/tty
+        read -p "  Enter your GitHub username: " github_user < /dev/tty
+        read -p "  Machine type (personal/work) [personal]: " machine_type < /dev/tty
+        machine_type=${machine_type:-personal}
+
+        success "Personal information collected"
+
         print_step "Initializing Dotfiles"
         init_dotfiles
 
-        # Check if chezmoidata.toml exists, if not create it interactively
+        # Create .chezmoidata.toml in the chezmoi source directory after cloning
         if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoidata.toml" ]]; then
-            print_step "Configuring Personal Information"
-            info "Chezmoi templates need some personal information..."
-            echo ""
-
-            # Prompt for user information
-            # Redirect from /dev/tty to allow interactive input even when piped
-            read -p "  Enter your full name: " user_name < /dev/tty
-            read -p "  Enter your email address: " user_email < /dev/tty
-            read -p "  Enter your GitHub username: " github_user < /dev/tty
-            read -p "  Machine type (personal/work) [personal]: " machine_type < /dev/tty
-            machine_type=${machine_type:-personal}
-
-            # Create .chezmoidata.toml
             cat > "$HOME/.local/share/chezmoi/.chezmoidata.toml" <<EOF
 # Chezmoi template data
 # This file is gitignored to keep your personal info private
@@ -910,15 +900,14 @@ main() {
     github_username = "$github_user"
     machine_type = "$machine_type"
 EOF
+            info "Created personal data file"
 
-            success "Personal information configured"
-
-            # Now apply dotfiles again with the data file
-            info "Applying remaining dotfiles..."
+            # Now apply dotfiles with the data file
+            info "Applying dotfiles with your information..."
             if chezmoi apply; then
                 success "All dotfiles applied successfully"
             else
-                warn "Some dotfiles still couldn't be applied"
+                warn "Some dotfiles could not be applied"
             fi
         fi
 

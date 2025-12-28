@@ -250,9 +250,10 @@ display_module_status() {
         fi
     fi
 
-    # Left side: symbol + module name (35 chars)
-    # Right side: status + info (28 chars)
-    printf "  ${color}${symbol}${NC} %-32s ${DIM}%-20s${NC} ${DIM}%s${NC}\n" "${module}" "${status_text}" "${info_text}"
+    # Total width inside box: 65 chars (67 - 2 for borders)
+    # Layout: "  ○ module-name (32)          Status (20)       info"
+    # 2 + 1 + 1 + 32 + 1 + 20 = 57 chars, leaving 8 for info/padding
+    printf "${SECTION}│${NC}  ${color}${symbol}${NC} %-32s ${DIM}%-28s${NC} ${SECTION}│${NC}\n" "${module}" "${status_text}${info_text:+ }${info_text}"
 }
 
 # =============================================================================

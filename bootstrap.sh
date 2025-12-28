@@ -177,12 +177,7 @@ run_first_time_setup() {
 
     log_section "FIRST TIME SETUP"
 
-    log_info "Welcome to Dotfiles 3.0!"
-    log_info "This will set up your development environment"
-    echo ""
-
     # Discover available modules
-    log_info "Scanning available modules..."
     module_discover
 
     local all_modules=($(module_list_all))
@@ -193,13 +188,7 @@ run_first_time_setup() {
         return 1
     fi
 
-    log_success "Found ${module_count} module(s) for your system"
     echo ""
-
-    # Show installation plan
-    log_info "The following modules will be installed:"
-    echo ""
-
     module_display_status
 
     # Confirm unless non-interactive

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Module for configuring mtr permissions
-MODULE_NAME="MTR Configuration"
-MODULE_DESC="Configure mtr to run without sudo"
+# Module for setting SUID bit on mtr
+MODULE_NAME="SUID MTR"
+MODULE_DESC="Set SUID bit on mtr-packet"
 MODULE_DEPS=("homebrew")
 MODULE_ORDER=38
 MODULE_CATEGORY="configuration"

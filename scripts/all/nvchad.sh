@@ -7,10 +7,10 @@
 # Module Metadata
 # =============================================================================
 MODULE_NAME="NvChad"
-MODULE_DESC="Modern Neovim configuration framework"
+MODULE_DESC="Neovim configuration and plugins"
 MODULE_DEPS=("git" "neovim")
 MODULE_ORDER=35
-MODULE_CATEGORY="applications"
+MODULE_CATEGORY="configuration"
 
 # =============================================================================
 # Module Functions

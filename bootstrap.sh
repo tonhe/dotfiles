@@ -20,7 +20,8 @@
 #   --clear-log     Archive and clear the log
 # =============================================================================
 
-set -e
+# Temporarily disabled for debugging
+# set -e
 
 # =============================================================================
 # Bootstrap Configuration

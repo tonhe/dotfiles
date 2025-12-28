@@ -5,16 +5,8 @@
 
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then
-    if [[ -z "${SCRIPT_DIR}" ]]; then
-        local source_file="${BASH_SOURCE[0]}"
-        if [[ -n "$source_file" ]]; then
-            SCRIPT_DIR="$(cd "$(dirname "$source_file")" 2>/dev/null && pwd)"
-        fi
-        if [[ -z "${SCRIPT_DIR}" ]] || [[ ! -d "${SCRIPT_DIR}" ]]; then
-            SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
-        fi
-    fi
-    [[ -n "${SCRIPT_DIR}" ]] && [[ -d "${SCRIPT_DIR}" ]] && source "${SCRIPT_DIR}/colors.sh"
+    SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
+    source "${SCRIPT_DIR}/colors.sh"
 fi
 
 # =============================================================================
@@ -113,7 +105,7 @@ start_spinner() {
             local frame="${SPINNER_FRAMES:i++:1}"
             # Get current boot time for each frame
             #local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
-            local $(timestamp="" || echo "[    -.---]")
+            local timestamp=""
             printf "\r${DIM}${timestamp}${NC} ${SPINNER}${frame}${NC} ${DIM}${message}${NC}"
             if [ $i -ge ${#SPINNER_FRAMES} ]; then i=0; fi
             sleep 0.1
@@ -159,7 +151,7 @@ progress_bar() {
 
     # Get timestamp
     #local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
-    local $(timestamp="" || echo "[    -.---]")
+    local timestamp=""
 
     # Print with percentage
     printf "\r${DIM}${timestamp}${NC} ${PROGRESS}[%s]${NC} ${BRIGHT}%3d%%${NC} ${DIM}%s${NC}" "$bar" "$percentage" "$message"

@@ -6,9 +6,9 @@
 # Source colors if not already loaded
 if [[ -z "${NORD0}" ]]; then
     if [[ -z "${SCRIPT_DIR}" ]]; then
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")"
     fi
-    source "${SCRIPT_DIR}/colors.sh"
+    [[ -n "${SCRIPT_DIR}" ]] && source "${SCRIPT_DIR}/colors.sh"
 fi
 
 # =============================================================================

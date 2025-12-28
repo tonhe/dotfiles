@@ -7,12 +7,14 @@
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then
     if [[ -z "${SCRIPT_DIR}" ]]; then
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")")"
     fi
-    source "${SCRIPT_DIR}/colors.sh"
-    source "${SCRIPT_DIR}/logger.sh"
-    source "${SCRIPT_DIR}/utils.sh"
-    source "${SCRIPT_DIR}/state.sh"
+    if [[ -n "${SCRIPT_DIR}" ]]; then
+        source "${SCRIPT_DIR}/colors.sh"
+        source "${SCRIPT_DIR}/logger.sh"
+        source "${SCRIPT_DIR}/utils.sh"
+        source "${SCRIPT_DIR}/state.sh"
+    fi
 fi
 
 # =============================================================================

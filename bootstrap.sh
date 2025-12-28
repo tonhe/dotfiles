@@ -432,29 +432,21 @@ handle_show_logs() {
 # =============================================================================
 
 show_next_steps() {
-    local width=67
-
     echo ""
-    echo -e "${SECTION}┌$(printf '─%.0s' $(seq 1 $width))┐${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}Next Steps${NC}$(printf '%*s' $((width - 12)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}├$(printf '─%.0s' $(seq 1 $width))┤${NC}"
-    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}1.${NC} Restart your terminal or run:$(printf '%*s' $((width - 33)) '')${SECTION}│${NC}"
-
-    if is_macos; then
-        echo -e "${SECTION}│${NC}    ${INFO}source ~/.zshrc${NC}$(printf '%*s' $((width - 21)) '')${SECTION}│${NC}"
-    else
-        echo -e "${SECTION}│${NC}    ${INFO}source ~/.bashrc${NC} or ${INFO}source ~/.zshrc${NC}$(printf '%*s' $((width - 42)) '')${SECTION}│${NC}"
-    fi
-
-    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} View the log:$(printf '%*s' $((width - 17)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}$(printf '%*s' $((width - 35)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} Run bootstrap again for maintenance mode:$(printf '%*s' $((width - 47)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}$(printf '%*s' $((width - 43)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}$(printf '%*s' $((width - 1)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}└$(printf '─%.0s' $(seq 1 $width))┘${NC}"
+    echo -e "${SECTION}┌───────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}Next Steps${NC}                                                        ${SECTION}│${NC}"
+    echo -e "${SECTION}├───────────────────────────────────────────────────────────────────┤${NC}"
+    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}1.${NC} Restart your terminal or run:                                ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}source ~/.zshrc${NC}                                                ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} View the log:                                                 ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}                                 ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} Run bootstrap again for maintenance mode:                     ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}                         ${SECTION}│${NC}"
+    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
+    echo -e "${SECTION}└───────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
 }
 

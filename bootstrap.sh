@@ -500,7 +500,7 @@ install_homebrew() {
 
             # Add to shell profile if not already there
             if ! grep -q "brew shellenv" "$HOME/.zprofile" 2>/dev/null; then
-                echo 'eval "$($brew_path shellenv)"' >> "$HOME/.zprofile"
+                echo "eval \"\$($brew_path shellenv)\"" >> "$HOME/.zprofile"
             fi
             eval "$($brew_path shellenv)"
 

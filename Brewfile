@@ -99,7 +99,7 @@ brew "delta"            # Better git diff
 brew "gh"               # GitHub CLI
 brew "jq"               # JSON processor
 brew "lazygit"          # Git TUI
-#brew "starship"         # Cross-shell prompt
+brew "starship"         # Cross-shell prompt
 brew "tree"             # Directory tree
 brew "wget"             # HTTP client
 brew "curl"             # HTTP client

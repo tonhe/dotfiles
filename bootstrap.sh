@@ -900,6 +900,9 @@ main() {
         print_step "Initializing Dotfiles"
         init_dotfiles
 
+        print_step "Installing Brewfile Packages"
+        install_brew_packages
+
         # Generate .gitconfig directly (not managed by chezmoi templates)
         if [[ ! -f "$HOME/.gitconfig" ]]; then
             info "Creating .gitconfig with your information..."
@@ -1002,16 +1005,13 @@ EOF
             info ".gitconfig already exists, skipping"
         fi
 
-        # Now apply remaining dotfiles
+        # Now apply remaining dotfiles (NvChad script will run here, after neovim is installed)
         info "Applying dotfiles..."
         if chezmoi apply; then
             success "All dotfiles applied successfully"
         else
             warn "Some dotfiles could not be applied"
         fi
-
-        print_step "Installing Brewfile Packages"
-        install_brew_packages
 
     elif [[ "$OS" == "linux" ]]; then
         # Linux-specific setup

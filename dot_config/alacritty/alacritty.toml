@@ -1,0 +1,19 @@
+[general]
+import = [
+    "~/.config/alacritty/solarized_dark.toml"
+]
+live_config_reload = true
+
+[window]
+opacity = 0.97
+padding.x = 5
+padding.y = 5
+decorations = "Full"
+decorations_theme_variant = "Dark"
+
+[font]
+normal.family = "JetBrainsMono Nerd Font"
+bold.family = "JetBrainsMono Nerd Font"
+italic.family = "JetBrainsMono Nerd Font"
+bold_italic.family = "JetBrainsMono Nerd Font"
+size = 12.0

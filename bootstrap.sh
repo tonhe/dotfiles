@@ -491,17 +491,14 @@ install_homebrew() {
             spinner $brew_pid "Installing Homebrew"
             wait $brew_pid
 
-            # Add Homebrew to PATH for this session and future sessions
+            # Add Homebrew to PATH for this session
             if [[ $(uname -m) == "arm64" ]]; then
                 brew_path="/opt/homebrew/bin/brew"
             else
                 brew_path="/usr/local/bin/brew"
             fi
 
-            # Add to shell profile if not already there
-            if ! grep -q "brew shellenv" "$HOME/.zprofile" 2>/dev/null; then
-                echo "eval \"\$($brew_path shellenv)\"" >> "$HOME/.zprofile"
-            fi
+            # Add to PATH for this session only (zshrc already has hardcoded PATH)
             eval "$($brew_path shellenv)"
 
             success "Homebrew installed"

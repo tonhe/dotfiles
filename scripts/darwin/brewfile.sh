@@ -130,7 +130,6 @@ uninstall() {
 reconfigure() {
     local brewfile="${DOTFILES_HOME}/repo/Brewfile"
 
-    log_info "Updating packages from Brewfile..."
     ensure_brew_path
 
     if [[ ! -f "$brewfile" ]]; then
@@ -138,13 +137,41 @@ reconfigure() {
         return 1
     fi
 
-    log_info "Updating packages from Brewfile..."
-    if brew bundle --file="$brewfile"; then
-        log_success "Brewfile packages updated"
+    # Count total packages
+    local total=$(grep -E "^(brew|cask|mas) " "$brewfile" | wc -l | tr -d ' ')
+    log_info "Updating ${total} packages from Brewfile..."
+
+    # Refresh sudo timestamp before running brew bundle
+    sudo -v
+
+    # Update with progress bar
+    local current=0
+    local current_package=""
+
+    # Use process substitution to avoid subshell and capture exit code
+    set +e
+    while IFS= read -r line; do
+        # Extract package name from "Installing <package>" or "Using <package>"
+        if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
+            current_package="${BASH_REMATCH[1]}"
+            current=$((current + 1))
+            progress_bar $current $total "Updating: $current_package"
+        fi
+    done < <(SUDO_ASKPASS="" brew bundle --file="$brewfile" 2>&1)
+
+    local brew_exit_code=$?
+    set -e
+
+    # Ensure progress reaches 100%
+    progress_bar $total $total "Brewfile packages complete"
+
+    if [ $brew_exit_code -eq 0 ]; then
+        log_success "Brewfile packages updated (${total} packages)"
     else
-        log_warn "Some packages failed to update"
+        log_warn "Some packages failed to update (exit code: $brew_exit_code)"
         log_info "Continuing with successfully updated packages..."
     fi
+
     return 0
 }
 

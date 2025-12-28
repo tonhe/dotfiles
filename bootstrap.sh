@@ -311,10 +311,10 @@ run_maintenance_mode() {
                 handle_update_packages
                 ;;
             3)
-                handle_reconfigure_module
+                handle_install_module
                 ;;
             4)
-                handle_remove_module
+                handle_uninstall_module
                 ;;
             5)
                 handle_show_status
@@ -396,8 +396,8 @@ handle_update_packages() {
     log_module_end
 }
 
-handle_reconfigure_module() {
-    log_section "RECONFIGURE MODULE"
+handle_install_module() {
+    log_section "INSTALL MODULE"
 
     local all_modules=($(module_list_all))
 
@@ -430,15 +430,16 @@ handle_reconfigure_module() {
 
         log_module_start "$selected_module"
 
-        # If module is not installed, run install instead of reconfigure
+        # Install if not installed, reconfigure if already installed
         if ! state_is_installed "$selected_module"; then
-            log_info "${module_name} is not installed - running install instead"
+            log_info "Installing ${module_name}..."
             if module_install "$selected_module"; then
                 log_success "${module_name} installed"
             else
                 log_error "${module_name} installation failed"
             fi
         else
+            log_info "${module_name} is already installed - reconfiguring"
             if module_exec "$selected_module" "reconfigure"; then
                 log_success "${module_name} reconfigured"
             else
@@ -452,8 +453,8 @@ handle_reconfigure_module() {
     fi
 }
 
-handle_remove_module() {
-    log_section "REMOVE MODULE"
+handle_uninstall_module() {
+    log_section "UNINSTALL MODULE"
 
     local installed_modules=($(state_list_installed))
 

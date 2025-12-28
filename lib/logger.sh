@@ -24,26 +24,26 @@ DOTFILES_HOME="${HOME}/.dotfiles"
 LOG_FILE="${DOTFILES_HOME}/bootstrap.log"
 LOG_MAX_SIZE=$((10 * 1024 * 1024))  # 10MB
 
-# Boot timer - DISABLED FOR DEBUGGING
-# # Only initialize once - don't reset if already set (when re-sourced by modules)
-# if [[ -z "${BOOT_START_MS}" ]]; then
-#     BOOT_START_TIME=$(date +%s)
-#     if [[ "$OSTYPE" == "darwin"* ]]; then
-#         if command -v gdate &>/dev/null; then
-#             BOOT_START_MS=$(gdate +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
-#         else
-#             BOOT_START_MS=$((BOOT_START_TIME * 1000))
-#         fi
-#     else
-#         BOOT_START_MS=$(date +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
-#     fi
-#
-#     # Ensure BOOT_START_MS is never empty
-#     : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
-# fi
-#
-# # Export so child processes (module scripts) inherit it
-# export BOOT_START_MS
+# Boot timer - tracks milliseconds since start
+# Only initialize once - don't reset if already set (when re-sourced by modules)
+if [[ -z "${BOOT_START_MS}" ]]; then
+    BOOT_START_TIME=$(date +%s)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v gdate &>/dev/null; then
+            BOOT_START_MS=$(gdate +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
+        else
+            BOOT_START_MS=$((BOOT_START_TIME * 1000))
+        fi
+    else
+        BOOT_START_MS=$(date +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
+    fi
+
+    # Ensure BOOT_START_MS is never empty
+    : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
+fi
+
+# Export so child processes (module scripts) inherit it
+export BOOT_START_MS
 
 # Current module context
 CURRENT_MODULE=""
@@ -97,50 +97,52 @@ log_init() {
 }
 
 # =============================================================================
-# Time Formatting - DISABLED FOR DEBUGGING
+# Time Formatting
 # =============================================================================
 
-# # Get elapsed time in seconds with millisecond precision
-# get_elapsed_ms() {
-#     local current_ms=""
-#     local current_sec=""
-#     local boot_start="${BOOT_START_MS:-0}"
-#
-#     if [[ "$OSTYPE" == "darwin"* ]]; then
-#         if command -v gdate &>/dev/null 2>&1; then
-#             current_ms=$(gdate +%s%3N 2>/dev/null || echo "")
-#         fi
-#         if [[ -z "$current_ms" ]]; then
-#             current_sec=$(date +%s 2>/dev/null || echo "")
-#             if [[ -n "$current_sec" ]]; then
-#                 current_ms=$((current_sec * 1000))
-#             else
-#                 current_ms=0
-#             fi
-#         fi
-#     else
-#         current_ms=$(date +%s%3N 2>/dev/null || echo "")
-#         if [[ -z "$current_ms" ]]; then
-#             current_sec=$(date +%s 2>/dev/null || echo "")
-#             if [[ -n "$current_sec" ]]; then
-#                 current_ms=$((current_sec * 1000))
-#             else
-#                 current_ms=0
-#             fi
-#         fi
-#     fi
-#
-#     # Final safety check
-#     current_ms=${current_ms:-0}
-#
-#     echo $((current_ms - boot_start))
-# }
+# Get elapsed time in seconds with millisecond precision
+get_elapsed_ms() {
+    local current_ms=""
+    local current_sec=""
+    local boot_start="${BOOT_START_MS:-0}"
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v gdate &>/dev/null 2>&1; then
+            current_ms=$(gdate +%s%3N 2>/dev/null || echo "")
+        fi
+        if [[ -z "$current_ms" ]]; then
+            current_sec=$(date +%s 2>/dev/null || echo "")
+            if [[ -n "$current_sec" ]]; then
+                current_ms=$((current_sec * 1000))
+            else
+                current_ms=0
+            fi
+        fi
+    else
+        current_ms=$(date +%s%3N 2>/dev/null || echo "")
+        if [[ -z "$current_ms" ]]; then
+            current_sec=$(date +%s 2>/dev/null || echo "")
+            if [[ -n "$current_sec" ]]; then
+                current_ms=$((current_sec * 1000))
+            else
+                current_ms=0
+            fi
+        fi
+    fi
+
+    # Final safety check
+    current_ms=${current_ms:-0}
+
+    echo $((current_ms - boot_start))
+}
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
-# DISABLED - function removed completely
-# format_boot_time() {
-#     echo ""
-# }
+format_boot_time() {
+    local elapsed_ms=$(get_elapsed_ms)
+    local seconds=$((elapsed_ms / 1000))
+    local millis=$((elapsed_ms % 1000))
+    printf "[%5d.%03d]" $seconds $millis
+}
 
 # =============================================================================
 # Core Logging Functions
@@ -152,8 +154,9 @@ log_to_file() {
     shift
     local message="$*"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "UNKNOWN")
+    local elapsed=$(format_boot_time)
 
-    local log_line="${timestamp} [${level}]"
+    local log_line="${timestamp} ${elapsed} [${level}]"
     if [[ -n "${CURRENT_MODULE}" ]]; then
         log_line="${log_line} [${CURRENT_MODULE}]"
     fi
@@ -169,7 +172,7 @@ log_to_file() {
 # Log and print INFO level
 log_info() {
     local message="$*"
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -185,7 +188,7 @@ log_info() {
 # Log and print SUCCESS level
 log_success() {
     local message="$*"
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_SUCCESS=$((STATS_SUCCESS + 1))
 
     # Console output
@@ -202,7 +205,7 @@ log_success() {
 # Log and print WARNING level
 log_warn() {
     local message="$*"
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_SKIPPED=$((STATS_SKIPPED + 1))
 
     # Console output
@@ -219,7 +222,7 @@ log_warn() {
 # Log and print ERROR level with visual box
 log_error() {
     local message="$*"
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_FAILED=$((STATS_FAILED + 1))
 
     # Console output with error box (inline, fixed width 62 chars)
@@ -248,7 +251,7 @@ log_error() {
 # Log spinner/progress updates (console only, not logged to file to reduce noise)
 log_progress() {
     local message="$*"
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -273,7 +276,7 @@ log_section() {
     local padding=$(printf "%.0s${BOX_H_H}" $(seq 1 $dash_count))
 
     #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     # Console output
     echo ""
@@ -312,14 +315,12 @@ log_module_end() {
 log_summary() {
     local status="$1"  # SUCCESS, FAILED, or SUCCESS_WITH_ERRORS
 
-    # Timing disabled for debugging
-    # local end_time=$(date +%s)
-    # local elapsed=$((end_time - BOOT_START_TIME))
-    local minutes=0
-    local seconds=0
+    local end_time=$(date +%s)
+    local elapsed=$((end_time - BOOT_START_TIME))
+    local minutes=$((elapsed / 60))
+    local seconds=$((elapsed % 60))
 
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     log_section "COMPLETE"
 
@@ -391,5 +392,4 @@ log_tail() {
 export -f log_init log_info log_success log_warn log_error log_progress
 export -f log_section log_module_start log_module_end log_summary
 export -f log_show log_show_errors log_clear log_tail
-export -f log_to_file
-# format_boot_time and get_elapsed_ms removed for debugging
+export -f log_to_file get_elapsed_ms format_boot_time

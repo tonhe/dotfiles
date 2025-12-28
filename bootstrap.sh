@@ -189,6 +189,9 @@ run_first_time_setup() {
 
     log_section "FIRST TIME SETUP"
 
+    # Initialize state system (creates metadata file)
+    state_init
+
     # Discover available modules
     module_discover
 
@@ -293,6 +296,9 @@ run_maintenance_mode() {
     print_banner
 
     log_section "MAINTENANCE MODE"
+
+    # Initialize state system (ensures directories exist)
+    state_init
 
     # Discover modules
     module_discover
@@ -585,7 +591,6 @@ main() {
 
     # Initialize systems
     log_init
-    state_init
     detect_os
 
     # Handle log-viewing actions
@@ -604,7 +609,7 @@ main() {
             ;;
     esac
 
-    # Determine mode: first run or maintenance
+    # Determine mode: first run or maintenance (check BEFORE state_init)
     if state_is_first_run; then
         log_info "No metadata found - entering first-time setup mode"
         run_first_time_setup

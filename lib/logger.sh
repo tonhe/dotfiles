@@ -130,6 +130,10 @@ get_elapsed_ms() {
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
 format_boot_time() {
+    # Temporarily disabled for debugging
+    echo ""
+    return
+
     local elapsed_ms=$(get_elapsed_ms)
     local seconds=$((elapsed_ms / 1000))
     local millis=$((elapsed_ms % 1000))

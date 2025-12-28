@@ -604,8 +604,9 @@ init_dotfiles() {
             info "Applying dotfiles to home directory..."
             echo ""
 
-            # Run chezmoi apply with verbose output so user can see what's happening
-            if ! chezmoi apply --verbose; then
+            # Apply dotfiles and show progress
+            # Note: chezmoi apply outputs actions it's taking, we don't suppress it
+            if ! chezmoi apply 2>&1 | grep -E "^(\.|\+|running|skipping)" | sed 's/^/  /'; then
                 echo ""
                 warn "Some dotfiles could not be applied. You may need to run 'chezmoi apply' manually."
             else
@@ -883,6 +884,42 @@ main() {
 
         print_step "Initializing Dotfiles"
         init_dotfiles
+
+        # Check if chezmoidata.toml exists, if not create it interactively
+        if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoidata.toml" ]]; then
+            print_step "Configuring Personal Information"
+            info "Chezmoi templates need some personal information..."
+            echo ""
+
+            # Prompt for user information
+            read -p "  Enter your full name: " user_name
+            read -p "  Enter your email address: " user_email
+            read -p "  Enter your GitHub username: " github_user
+            read -p "  Machine type (personal/work) [personal]: " machine_type
+            machine_type=${machine_type:-personal}
+
+            # Create .chezmoidata.toml
+            cat > "$HOME/.local/share/chezmoi/.chezmoidata.toml" <<EOF
+# Chezmoi template data
+# This file is gitignored to keep your personal info private
+
+[data]
+    name = "$user_name"
+    email = "$user_email"
+    github_username = "$github_user"
+    machine_type = "$machine_type"
+EOF
+
+            success "Personal information configured"
+
+            # Now apply dotfiles again with the data file
+            info "Applying remaining dotfiles..."
+            if chezmoi apply; then
+                success "All dotfiles applied successfully"
+            else
+                warn "Some dotfiles still couldn't be applied"
+            fi
+        fi
 
         print_step "Installing Brewfile Packages"
         install_brew_packages

@@ -24,9 +24,16 @@ fi
 echo "Setting up Terminal profile..."
 
 PROFILE_NAME="mySolarizedDark"
-PROFILE_PATH="$HOME/mySolarizedDark.terminal"
+# Try to find the profile in home directory first, then in chezmoi source
+if [ -f "$HOME/mySolarizedDark.terminal" ]; then
+    PROFILE_PATH="$HOME/mySolarizedDark.terminal"
+elif [ -f "$HOME/.local/share/chezmoi/mySolarizedDark.terminal" ]; then
+    PROFILE_PATH="$HOME/.local/share/chezmoi/mySolarizedDark.terminal"
+else
+    PROFILE_PATH=""
+fi
 
-if [ -f "$PROFILE_PATH" ]; then
+if [ -n "$PROFILE_PATH" ]; then
     echo "Found Terminal profile at: $PROFILE_PATH"
 
     # Import the profile by opening it

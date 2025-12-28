@@ -331,31 +331,32 @@ user_config_prompt() {
     echo ""
 
     # Get current values if they exist
-    local current_name=$(user_config_get "USER_FULL_NAME")
-    local current_email=$(user_config_get "USER_EMAIL")
-    local current_github=$(user_config_get "GITHUB_USERNAME")
-    local current_machine=$(user_config_get "MACHINE_TYPE")
+    local current_name=$(user_config_get "USER_FULL_NAME" 2>/dev/null || echo "")
+    local current_email=$(user_config_get "USER_EMAIL" 2>/dev/null || echo "")
+    local current_github=$(user_config_get "GITHUB_USERNAME" 2>/dev/null || echo "")
+    local current_machine=$(user_config_get "MACHINE_TYPE" 2>/dev/null || echo "")
 
     # Prompt with defaults
-    read -p "  Full name [$current_name]: " user_name < /dev/tty
+    read -p "  Full name [$current_name]: " user_name < /dev/tty || return 1
     user_name=${user_name:-$current_name}
 
-    read -p "  Email address [$current_email]: " user_email < /dev/tty
+    read -p "  Email address [$current_email]: " user_email < /dev/tty || return 1
     user_email=${user_email:-$current_email}
 
-    read -p "  GitHub username [$current_github]: " github_user < /dev/tty
+    read -p "  GitHub username [$current_github]: " github_user < /dev/tty || return 1
     github_user=${github_user:-$current_github}
 
-    read -p "  Machine type (personal/work) [$current_machine]: " machine_type < /dev/tty
+    read -p "  Machine type (personal/work) [$current_machine]: " machine_type < /dev/tty || return 1
     machine_type=${machine_type:-$current_machine}
 
     # Save values
-    user_config_set "USER_FULL_NAME" "$user_name"
-    user_config_set "USER_EMAIL" "$user_email"
-    user_config_set "GITHUB_USERNAME" "$github_user"
-    user_config_set "MACHINE_TYPE" "$machine_type"
+    user_config_set "USER_FULL_NAME" "$user_name" || return 1
+    user_config_set "USER_EMAIL" "$user_email" || return 1
+    user_config_set "GITHUB_USERNAME" "$github_user" || return 1
+    user_config_set "MACHINE_TYPE" "$machine_type" || return 1
 
     echo ""
+    return 0
 }
 
 # Check if user config is complete

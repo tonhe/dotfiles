@@ -207,19 +207,31 @@ run_first_time_setup() {
         log_success "Administrator access granted"
     fi
 
+    log_info "DEBUG: Checking user config..."
     # Check if user config is needed
     if ! user_config_is_complete; then
+        log_info "DEBUG: User config incomplete, prompting..."
         log_section "USER CONFIGURATION"
         if [[ "$NON_INTERACTIVE" == true ]]; then
             log_warn "Non-interactive mode: using default user configuration"
         else
-            user_config_prompt
+            if ! user_config_prompt; then
+                log_warn "User configuration prompt failed, continuing with existing config..."
+            fi
         fi
+    else
+        log_info "DEBUG: User config already complete"
     fi
 
+    log_info "DEBUG: Sorting modules..."
     # Sort modules by execution order
     local sorted_modules=($(module_sort_by_order "${all_modules[@]}"))
+    if [[ -z "${sorted_modules[*]}" ]]; then
+        log_error "No modules available to install"
+        return 1
+    fi
 
+    log_info "DEBUG: Starting module installation..."
     # Install all modules
     log_section "MODULE INSTALLATION"
 

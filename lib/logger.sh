@@ -54,19 +54,19 @@ log_init() {
     # Ensure dotfiles directory exists
     mkdir -p "${DOTFILES_HOME}"
 
-    # Initialize boot timer
-    BOOT_START_TIME=$(date +%s)
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS has millisecond precision with gdate if available
-        if command -v gdate &>/dev/null; then
-            BOOT_START_MS=$(gdate +%s%3N)
-        else
-            BOOT_START_MS=$((BOOT_START_TIME * 1000))
-        fi
-    else
-        # Linux date has nanosecond precision
-        BOOT_START_MS=$(date +%s%3N)
-    fi
+    # Initialize boot timer - DISABLED FOR DEBUGGING
+    # BOOT_START_TIME=$(date +%s)
+    # if [[ "$OSTYPE" == "darwin"* ]]; then
+    #     # macOS has millisecond precision with gdate if available
+    #     if command -v gdate &>/dev/null; then
+    #         BOOT_START_MS=$(gdate +%s%3N)
+    #     else
+    #         BOOT_START_MS=$((BOOT_START_TIME * 1000))
+    #     fi
+    # else
+    #     # Linux date has nanosecond precision
+    #     BOOT_START_MS=$(date +%s%3N)
+    # fi
 
     # Rotate log if it's too large
     if [[ -f "${LOG_FILE}" ]]; then
@@ -300,10 +300,11 @@ log_module_end() {
 log_summary() {
     local status="$1"  # SUCCESS, FAILED, or SUCCESS_WITH_ERRORS
 
-    local end_time=$(date +%s)
-    local elapsed=$((end_time - BOOT_START_TIME))
-    local minutes=$((elapsed / 60))
-    local seconds=$((elapsed % 60))
+    # Timing disabled for debugging
+    # local end_time=$(date +%s)
+    # local elapsed=$((end_time - BOOT_START_TIME))
+    local minutes=0
+    local seconds=0
 
     local timestamp=$(format_boot_time)
 

@@ -246,12 +246,12 @@ run_first_time_setup() {
     for module in "${sorted_modules[@]}"; do
         if [[ "$DRY_RUN" == true ]]; then
             log_info "Would install: $(module_get_name "$module")"
-            ((installed++))
+            installed=$((installed + 1))
         else
             if module_install "$module"; then
-                ((installed++))
+                installed=$((installed + 1))
             else
-                ((failed++))
+                failed=$((failed + 1))
             fi
         fi
     done

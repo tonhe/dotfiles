@@ -322,6 +322,7 @@ module_install() {
 
     log_module_start "$module"
 
+    # Check if already processed in previous run
     if state_is_installed "$module"; then
         local version=$(state_get_version "$module")
         log_success "${display_name} v${version} (already installed)"
@@ -329,7 +330,17 @@ module_install() {
         return 0
     fi
 
-    # Check if dependencies are satisfied
+    # Check if already installed on system (before checking dependencies)
+    if module_is_installed "$module"; then
+        local version=$(module_get_version "$module")
+        log_info "${display_name} detected on system"
+        state_mark_installed "$module" "$version"
+        log_success "${display_name} v${version} (detected)"
+        log_module_end
+        return 0
+    fi
+
+    # Now check if dependencies are satisfied (for new installations)
     local deps_str=$(module_get_deps "$module")
     local -a deps=($deps_str)
     for dep in "${deps[@]}"; do
@@ -349,15 +360,6 @@ module_install() {
             return 1
         fi
     done
-
-    if module_is_installed "$module"; then
-        local version=$(module_get_version "$module")
-        log_info "${display_name} detected on system"
-        state_mark_installed "$module" "$version"
-        log_success "${display_name} v${version} (detected)"
-        log_module_end
-        return 0
-    fi
 
     log_info "Installing ${display_name}..."
 

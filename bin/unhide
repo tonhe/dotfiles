@@ -1,0 +1,20 @@
+#!/bin/bash
+DEBUG=1
+
+function dprint {
+ if [ $DEBUG -eq 1 ]; then
+  echo \(d\) ${1}
+ fi
+}
+
+dprint "Debugging on"
+dprint ""
+dprint "Number of Files $#"
+
+
+for file in $@
+do
+	dprint "chflags nohidden $file"
+	/usr/bin/chflags nohidden $file
+done
+

@@ -1,0 +1,87 @@
+[user]
+    name = {{ .name | quote }}
+    email = {{ .email | quote }}
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = nvim
+    pager = delta
+    excludesfile = ~/.gitignore_global
+    autocrlf = input
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    light = false
+    side-by-side = true
+    line-numbers = true
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+
+[pull]
+    rebase = true
+
+[push]
+    autoSetupRemote = true
+    default = current
+
+[fetch]
+    prune = true
+
+[rebase]
+    autoStash = true
+
+[alias]
+    # Status
+    s = status -sb
+    
+    # Logging
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    ll = log --oneline -n 20
+    
+    # Branching
+    co = checkout
+    cob = checkout -b
+    br = branch
+    bra = branch -a
+    
+    # Committing
+    cm = commit -m
+    ca = commit --amend
+    can = commit --amend --no-edit
+    
+    # Diffing
+    d = diff
+    ds = diff --staged
+    
+    # Stashing
+    st = stash
+    stp = stash pop
+    stl = stash list
+    
+    # Undo
+    undo = reset HEAD~1 --mixed
+    unstage = reset HEAD --
+    
+    # Cleanup
+    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | xargs -n 1 git branch -d"
+
+[credential]
+    helper = osxkeychain
+
+{{ if eq .machine_type "work" }}
+# Work-specific git config
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+{{ end }}
+
+[github]
+    user = {{ .github_username | quote }}

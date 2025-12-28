@@ -1,0 +1,12 @@
+#!/bin/bash
+SSH="/usr/bin/ssh"
+LOCAL_SOCKS5_PORT="5555"
+
+echo -n "Opening SOCKS5 Proxy on localhost:$LOCAL_SOCKS5_PORT..."
+
+case "$*" in
+   *'@'*) 	$SSH -D $LOCAL_SOCKS5_PORT -f -C -q -N $* ;; 
+   *' -l'*) 	$SSH -D $LOCAL_SOCKS5_PORT -f -C -q -N $* ;;
+   *) 		$SSH -D $LOCAL_SOCKS5_PORT -f -C -q -N tmattke@jarvis.mattke.net ;; 
+esac
+

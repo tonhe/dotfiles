@@ -1,0 +1,66 @@
+#!/bin/bash
+# 
+# PFX2PEM: Script to convert PFX files to PEM and PEM Key 
+# Last updated: August 25 2021 - Tony Mattke
+#
+VERSION=0.0.1
+WHODIDIT="(c) 2021 - Tony Mattke"
+
+DEBUG=1 # 0=off // 1= Dispaly Debug info
+
+EXPECT=/usr/bin/expect
+OPENSSL=/opt/homebrew/bin/openssl
+
+
+: ${1?"Usage: $0 cert.pfx"}
+PFX=$1
+
+
+function dprint {
+  if [ $DEBUG -eq 1 ]; then
+    echo \(d\) ${1}
+   fi
+}
+
+
+echo "PFX Converter v$VERSION - $WHODIDIT"
+echo -e "\nThis script will convert PFX to PEM/PEM key"
+
+if [ ! -f $PFX ] ; then
+  echo "Error: File not found $PFX!"
+  exit 1
+fi
+
+dprint "PFX input - $PFX"
+
+EXT=`echo $PFX | cut -d . -f2`
+
+KEY=`basename $PFX .$EXT`.key
+PEM=`basename $PFX .$EXT`.pem
+
+dprint "Key output - $KEY"
+dprint "PEM output - $PEM"
+
+echo "Extracting key to ${KEY}"
+
+if [ -f ${KEY} ] ; then
+  echo "Error: File ${KEY} already exists!"
+  exit 1
+fi
+
+dprint "executing - openssl pkcs12 -in ${PFX} -nocerts -out ${KEY}"
+openssl pkcs12 -in ${PFX} -nocerts -out ${KEY}
+
+dprint "executing - openssl rsa -in ${KEY} -out ${KEY}"
+openssl rsa -in ${KEY} -out ${KEY}
+
+echo "Extracting certificate to ${PEM}"
+if [ -f ${PEM} ] ; then
+  echo "Error: File ${PEM} already exists!"
+  exit 1
+fi
+
+dprint "executing - openssl pkcs12 -in ${PFX} -clcerts -nokeys -out ${PEM}"
+openssl pkcs12 -in ${PFX} -clcerts -nokeys -out ${PEM}
+
+echo -e "\n Done."

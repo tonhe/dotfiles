@@ -1,0 +1,2 @@
+#!/bin/bash
+hdiutil convert $1  -format UDTO -o $2

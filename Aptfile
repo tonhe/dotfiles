@@ -1,0 +1,164 @@
+# =============================================================================
+# Aptfile - Linux Package List (APT-based distros)
+# =============================================================================
+# Description: Equivalent packages to Brewfile for Debian/Ubuntu/APT-based distros
+# Install with: The bootstrap.sh script will read this file
+# Or manually: xargs -a Aptfile sudo apt-get install -y
+#
+# Note: Some macOS-specific tools don't have direct equivalents
+# Some packages may need manual installation or PPAs
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Utilities & Development Tools
+# -----------------------------------------------------------------------------
+git                     # Version control
+build-essential         # Compilers and build tools (gcc, g++, make)
+curl                    # HTTP client
+wget                    # HTTP client
+zsh                     # Shell
+tmux                    # Terminal multiplexer
+neovim                  # Editor
+python3                 # Python 3
+python3-pip             # Python package manager
+nodejs                  # Node.js
+npm                     # Node package manager
+jq                      # JSON processor
+
+# -----------------------------------------------------------------------------
+# Network Scanning & Discovery
+# -----------------------------------------------------------------------------
+nmap                    # Network mapper and port scanner
+masscan                 # Fast port scanner
+arp-scan                # ARP scanning and fingerprinting
+
+# -----------------------------------------------------------------------------
+# Packet Capture & Analysis
+# -----------------------------------------------------------------------------
+wireshark               # Network protocol analyzer (requires GUI or use tshark)
+tshark                  # Terminal-based Wireshark
+tcpdump                 # Packet analyzer
+
+# -----------------------------------------------------------------------------
+# Network Diagnostics & Testing
+# -----------------------------------------------------------------------------
+mtr                     # Network diagnostic tool (traceroute + ping)
+iperf3                  # Network bandwidth testing
+netcat-openbsd          # Networking utility (nc command)
+socat                   # Multipurpose relay (SOcket CAT)
+speedtest-cli           # Command line internet speed test
+ipcalc                  # IP subnet calculator
+
+# -----------------------------------------------------------------------------
+# DNS Tools
+# -----------------------------------------------------------------------------
+dnsutils                # DNS tools (dig, nslookup, host) - Debian/Ubuntu
+bind9-utils             # Alternative package name on some distros
+dnsmasq                 # Lightweight DNS forwarder
+
+# -----------------------------------------------------------------------------
+# HTTP/API Testing
+# -----------------------------------------------------------------------------
+httpie                  # User-friendly HTTP client
+
+# NOTE: 'hey' and 'wrk' may need manual installation:
+#   hey:  Download from https://github.com/rakyll/hey/releases
+#   wrk:  apt-get install wrk (available in Ubuntu 18.04+)
+
+# -----------------------------------------------------------------------------
+# Network Monitoring
+# -----------------------------------------------------------------------------
+iftop                   # Display bandwidth usage per interface
+bmon                    # Bandwidth monitor and rate estimator
+
+# NOTE: 'bandwhich' requires manual installation:
+#   Download from https://github.com/imsnif/bandwhich/releases
+
+# -----------------------------------------------------------------------------
+# Security Testing & Penetration Testing
+# -----------------------------------------------------------------------------
+hydra                   # Network logon cracker
+hashcat                 # Advanced password recovery
+john                    # John the Ripper password cracker
+sqlmap                  # Automatic SQL injection tool
+nikto                   # Web server scanner
+aircrack-ng             # WiFi security auditing tools suite
+
+# -----------------------------------------------------------------------------
+# VPN & Tunneling
+# -----------------------------------------------------------------------------
+openvpn                 # SSL/TLS VPN
+wireguard               # Fast, modern VPN
+wireguard-tools         # WireGuard command-line tools
+
+# NOTE: 'ngrok' requires manual installation:
+#   Download from https://ngrok.com/download
+
+# -----------------------------------------------------------------------------
+# TLS/SSL Tools
+# -----------------------------------------------------------------------------
+openssl                 # Cryptography and SSL/TLS toolkit
+ca-certificates         # Common CA certificates
+
+# NOTE: 'mkcert' and 'certbot' may need manual installation or snap:
+#   mkcert:  Download from https://github.com/FiloSottile/mkcert/releases
+#   certbot: sudo snap install certbot --classic
+
+# -----------------------------------------------------------------------------
+# Cloud & Infrastructure
+# -----------------------------------------------------------------------------
+# NOTE: AWS CLI and Terraform need special installation:
+#   awscli:    pip3 install awscli --user
+#   terraform: Download from https://www.terraform.io/downloads
+
+# -----------------------------------------------------------------------------
+# Modern CLI Replacements
+# -----------------------------------------------------------------------------
+bat                     # Better cat (may need snap or manual install on older distros)
+fd-find                 # Better find (command is 'fdfind' on Debian/Ubuntu)
+fzf                     # Fuzzy finder
+ripgrep                 # Better grep
+zoxide                  # Better cd (may need manual install)
+
+# NOTE: 'eza' (formerly exa) and 'delta' need manual installation:
+#   eza:   Download from https://github.com/eza-community/eza/releases
+#   delta: Download from https://github.com/dandavison/delta/releases
+
+# -----------------------------------------------------------------------------
+# Development Tools
+# -----------------------------------------------------------------------------
+tree                    # Directory tree viewer
+
+# NOTE: 'gh' (GitHub CLI) and 'lazygit' may need manual installation:
+#   gh:       See https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+#   lazygit:  Download from https://github.com/jesseduffield/lazygit/releases
+
+# -----------------------------------------------------------------------------
+# Additional Utilities
+# -----------------------------------------------------------------------------
+htop                    # Interactive process viewer (better than top)
+rsync                   # File synchronization tool
+unzip                   # ZIP archive extraction
+zip                     # ZIP archive creation
+vim                     # Classic text editor (good fallback if neovim issues)
+less                    # Pager
+man-db                  # Manual pages
+tldr                    # Simplified man pages (may need npm or pip install)
+
+# -----------------------------------------------------------------------------
+# Fonts (if using a GUI)
+# -----------------------------------------------------------------------------
+# NOTE: Nerd Fonts need manual installation on Linux
+#   Download from: https://www.nerdfonts.com/font-downloads
+#   Install to: ~/.local/share/fonts/ then run: fc-cache -fv
+#
+# Alternatively, some distros have packages:
+#   fonts-firacode
+#   fonts-hack
+#
+# Or install via wget:
+#   mkdir -p ~/.local/share/fonts
+#   cd ~/.local/share/fonts
+#   wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip
+#   unzip FiraCode.zip
+#   fc-cache -fv

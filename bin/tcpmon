@@ -1,0 +1,50 @@
+#!/bin/bash
+VERSION=0.0.4
+#
+# tcpmon 
+# Created by Tony Mattke on 6/24/16
+# Copyright 2016 Tony Mattke. All rights reserved.
+# http://routerjockey.com tony@mattke.net http://twitter.com/tonhe
+
+: ${1?"Usage: $0 host tcp.port [delay]"}
+: ${2?"Usage: $0 host tcp.port [delay]"}
+
+TIMEOUT=1   # net cat timeout
+HOSTNAME=$1
+PORT=$2
+DELAY=${3:-5} # if not assigned, set to 5 seconds
+
+function exit() {
+PER=`echo "scale=2; ($NUM-$SUCC)/$NUM" | bc`
+echo -e "\n\n$NUM attempts, $SUCC successful, $PER% failures "
+}
+
+trap exit EXIT
+
+clear; echo -e "
+################################################################################
+##\n##  tcpmon - continuous tcp monitor // v$VERSION
+##\n \n<ctrl>-c to exit
+\nRunning TCP ping to $HOSTNAME:$PORT, $DELAY second interval\n"
+
+TL=0
+NUM=0
+SUCC=0
+
+while :; do
+ TIME=` date +"%T"`
+ # Linux may need 
+ #if `nc -v -z -q0 -w $TIMEOUT $HOSTNAME $PORT >/dev/null 2>&1` ; then
+ # This works for Mac
+ if `nc -v -z -F -w $TIMEOUT $HOSTNAME $PORT >/dev/null 2>&1` ; then
+   TIMEFORMAT="%R"; 
+   L=$( { time nc -zFw 1 youtube.com 80 >/dev/null 2>&1; } 2>&1 );
+   echo -e "$TIME - $HOSTNAME:$PORT is open! time=$L "
+   SUCC=$[SUCC + 1]
+ else
+   echo -e "\a$TIME - $HOSTNAME:$PORT is closed... "
+ fi
+ NUM=$[NUM + 1]
+ sleep $DELAY
+done
+

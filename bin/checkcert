@@ -1,0 +1,13 @@
+#!/bin/bash
+CHECK="ssl-cert-info"
+
+CN=`$CHECK --cn --host $1 --name $1`
+ALT=`$CHECK --alt --host $1 --name $1  | tr '\n' ' '`
+IS=`$CHECK --issuer --host $1 --name $1 | grep commonName | cut -d= -f2-`
+
+echo "-----------------------------------------------------------------------"
+echo "| SSL Report for Hostname: $1"
+echo "| commonName - $CN"
+echo "| SAN        - $ALT"
+echo "| Issued By  - $IS"
+echo "-----------------------------------------------------------------------"

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo -n "Removing DOS control characters from $1..."
+/usr/bin/sed 's///g' "$1" >> "$1.fixing"
+/bin/mv "$1.fixing" "$1"
+echo "done."

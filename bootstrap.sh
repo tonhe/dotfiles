@@ -423,18 +423,31 @@ install_xcode_cli() {
         else
             info "Installing Xcode Command Line Tools..."
 
-            # Start background process
-            xcode-select --install &
-            local install_pid=$!
+            # Use softwareupdate for fully automated CLI installation (no GUI popup)
+            # Find the Command Line Tools package name
+            local clt_label=$(softwareupdate --list 2>/dev/null | grep "\*.*Command Line" | head -n 1 | awk -F"*" '{print $2}' | sed 's/^ *//' | tr -d '\n')
 
-            # Show spinner while waiting
-            spinner $install_pid "Installing Xcode CLI Tools"
+            if [[ -n "$clt_label" ]]; then
+                # Install in background so we can show progress
+                softwareupdate --install "$clt_label" --verbose &>/dev/null &
+                local install_pid=$!
 
-            # Wait for installation to complete
-            until xcode-select -p &>/dev/null; do
-                sleep 5
-            done
-            success "Xcode Command Line Tools installed"
+                # Show spinner while waiting
+                spinner $install_pid "Installing Xcode CLI Tools"
+                wait $install_pid
+
+                success "Xcode Command Line Tools installed"
+            else
+                # Fallback to interactive install if softwareupdate doesn't find it
+                warn "Could not find Xcode CLI Tools via softwareupdate, using interactive installer..."
+                xcode-select --install
+
+                # Wait for installation to complete
+                until xcode-select -p &>/dev/null; do
+                    sleep 5
+                done
+                success "Xcode Command Line Tools installed"
+            fi
         fi
     fi
 }

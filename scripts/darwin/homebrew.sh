@@ -13,6 +13,49 @@ MODULE_ORDER=20
 MODULE_CATEGORY="system"
 
 # =============================================================================
+# Helper Functions
+# =============================================================================
+
+# Ensure brew is in PATH for current session
+ensure_brew_path() {
+    local brew_path=""
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        brew_path="/opt/homebrew/bin/brew"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        brew_path="/usr/local/bin/brew"
+    else
+        return 1
+    fi
+
+    eval "$($brew_path shellenv)"
+    return 0
+}
+
+# Install packages from Brewfile
+install_brewfile_packages() {
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+
+    if [[ ! -f "$brewfile" ]]; then
+        log_warn "Brewfile not found at ${brewfile}"
+        return 1
+    fi
+
+    log_info "Installing packages from Brewfile..."
+    start_spinner "Running brew bundle"
+
+    if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
+        stop_spinner
+        log_success "Brewfile packages installed"
+        return 0
+    else
+        stop_spinner
+        log_warn "Some Brewfile packages may have failed to install"
+        log_info "Run 'brew bundle --file=$brewfile' manually for details"
+        return 1
+    fi
+}
+
+# =============================================================================
 # Module Functions
 # =============================================================================
 
@@ -37,6 +80,16 @@ get_version() {
 }
 
 install() {
+    # Check if Homebrew is already installed
+    if is_installed; then
+        log_info "Homebrew already installed"
+        ensure_brew_path
+
+        # Still install packages from Brewfile
+        install_brewfile_packages
+        return $?
+    fi
+
     log_info "Installing Homebrew package manager..."
 
     # Download and run Homebrew installer
@@ -56,42 +109,17 @@ install() {
         return 1
     fi
 
-    # Determine brew path
-    local brew_path=""
-    if [[ $(uname -m) == "arm64" ]]; then
-        brew_path="/opt/homebrew/bin/brew"
-    else
-        brew_path="/usr/local/bin/brew"
-    fi
-
     # Add to PATH for current session
-    if [[ -x "$brew_path" ]]; then
-        eval "$($brew_path shellenv)"
-        log_success "Homebrew installed successfully"
-    else
+    if ! ensure_brew_path; then
         log_error "Homebrew binary not found after installation"
         return 1
     fi
 
+    log_success "Homebrew installed successfully"
+
     # Install packages from Brewfile
-    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
-    if [[ -f "$brewfile" ]]; then
-        log_info "Installing packages from Brewfile..."
-        start_spinner "Running brew bundle"
-
-        if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
-            stop_spinner
-            log_success "Brewfile packages installed"
-        else
-            stop_spinner
-            log_warn "Some Brewfile packages may have failed to install"
-            log_info "Check brew bundle output for details"
-        fi
-    else
-        log_warn "Brewfile not found at ${brewfile}"
-    fi
-
-    return 0
+    install_brewfile_packages
+    return $?
 }
 
 uninstall() {
@@ -117,6 +145,8 @@ uninstall() {
 reconfigure() {
     log_info "Updating Homebrew and packages..."
 
+    ensure_brew_path
+
     local brew_path=""
     if [[ -x "/opt/homebrew/bin/brew" ]]; then
         brew_path="/opt/homebrew/bin/brew"
@@ -130,21 +160,8 @@ reconfigure() {
     log_success "Homebrew updated"
 
     # Re-run brew bundle to install any new packages
-    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
-    if [[ -f "$brewfile" ]]; then
-        log_info "Installing/updating packages from Brewfile..."
-        start_spinner "Running brew bundle"
-
-        if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
-            stop_spinner
-            log_success "Brewfile packages updated"
-        else
-            stop_spinner
-            log_warn "Some Brewfile packages may have failed"
-        fi
-    fi
-
-    return 0
+    install_brewfile_packages
+    return $?
 }
 
 verify() {

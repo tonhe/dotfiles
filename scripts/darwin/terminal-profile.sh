@@ -16,8 +16,7 @@ install() {
     log_info "Importing Terminal profile..."
 
     local profile_name="mySolarizedDark"
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local profile_path="${script_dir}/assets/mySolarizedDark.terminal"
+    local profile_path="${DOTFILES_HOME}/repo/scripts/darwin/assets/mySolarizedDark.terminal"
 
     # Verify profile file exists
     if [[ ! -f "$profile_path" ]]; then

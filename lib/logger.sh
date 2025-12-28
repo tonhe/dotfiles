@@ -130,8 +130,8 @@ get_elapsed_ms() {
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
 format_boot_time() {
-    # Temporarily disabled for debugging
-    echo ""
+    # Temporarily disabled for debugging - return safe placeholder
+    echo "[     .   ]"
     return
 
     local elapsed_ms=$(get_elapsed_ms)

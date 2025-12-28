@@ -381,7 +381,7 @@ handle_refresh_all() {
 handle_update_packages() {
     log_section "UPDATE PACKAGES"
 
-    if ! module_exists "brewfile"; then
+    if [[ -z "$(module_get_path "brewfile")" ]]; then
         log_error "Brewfile module not found"
         return 1
     fi

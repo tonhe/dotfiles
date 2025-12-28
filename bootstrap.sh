@@ -339,9 +339,9 @@ run_maintenance_mode() {
 # Maintenance menu display
 display_maintenance_menu() {
     echo ""
-    echo -e "${SECTION}╔═══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${SECTION}║${NC} ${BRIGHT}Dotfiles Maintenance Menu${NC}                                         ${SECTION}║${NC}"
-    echo -e "${SECTION}╚═══════════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${SECTION}┌───────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${SECTION}│${NC} ${BRIGHT}Dotfiles Maintenance Menu${NC}                                         ${SECTION}│${NC}"
+    echo -e "${SECTION}└───────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
     echo -e "${INFO}[1]${NC} ${TEXT}Refresh all (pull latest + reconfigure all modules)${NC}"
     echo -e "${INFO}[2]${NC} ${TEXT}Update Brewfile packages${NC}"
@@ -426,13 +426,26 @@ handle_reconfigure_module() {
 
     if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#menu_modules[@]} ]]; then
         local selected_module="${menu_modules[$((choice - 1))]}"
+        local module_name=$(module_get_name "$selected_module")
 
         log_module_start "$selected_module"
-        if module_exec "$selected_module" "reconfigure"; then
-            log_success "$(module_get_name "$selected_module") reconfigured"
+
+        # If module is not installed, run install instead of reconfigure
+        if ! state_is_installed "$selected_module"; then
+            log_info "${module_name} is not installed - running install instead"
+            if module_install "$selected_module"; then
+                log_success "${module_name} installed"
+            else
+                log_error "${module_name} installation failed"
+            fi
         else
-            log_error "Reconfiguration failed"
+            if module_exec "$selected_module" "reconfigure"; then
+                log_success "${module_name} reconfigured"
+            else
+                log_error "Reconfiguration failed"
+            fi
         fi
+
         log_module_end
     else
         log_warn "Invalid choice"
@@ -592,8 +605,10 @@ main() {
 
     # Determine mode: first run or maintenance
     if state_is_first_run; then
+        log_info "No metadata found - entering first-time setup mode"
         run_first_time_setup
     else
+        log_info "Metadata found - entering maintenance mode"
         # Update metadata
         state_update_metadata
 

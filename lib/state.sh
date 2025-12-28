@@ -73,12 +73,8 @@ EOF
 
 # Check if this is the first run
 state_is_first_run() {
-    if [[ ! -f "$METADATA_FILE" ]]; then
-        return 0
-    fi
-
-    local run_count=$(json_get "$METADATA_FILE" "['run_count']" 2>/dev/null || echo "0")
-    [[ "$run_count" -le 1 ]]
+    # Simple check: if metadata file doesn't exist, it's first run
+    [[ ! -f "$METADATA_FILE" ]]
 }
 
 # =============================================================================

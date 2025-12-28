@@ -16,26 +16,26 @@ DOTFILES_HOME="${HOME}/.dotfiles"
 LOG_FILE="${DOTFILES_HOME}/bootstrap.log"
 LOG_MAX_SIZE=$((10 * 1024 * 1024))  # 10MB
 
-# Boot timer - tracks milliseconds since start
-# Only initialize once - don't reset if already set (when re-sourced by modules)
-if [[ -z "${BOOT_START_MS}" ]]; then
-    BOOT_START_TIME=$(date +%s)
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v gdate &>/dev/null; then
-            BOOT_START_MS=$(gdate +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
-        else
-            BOOT_START_MS=$((BOOT_START_TIME * 1000))
-        fi
-    else
-        BOOT_START_MS=$(date +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
-    fi
-
-    # Ensure BOOT_START_MS is never empty
-    : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
-fi
-
-# Export so child processes (module scripts) inherit it
-export BOOT_START_MS
+# Boot timer - DISABLED FOR DEBUGGING
+# # Only initialize once - don't reset if already set (when re-sourced by modules)
+# if [[ -z "${BOOT_START_MS}" ]]; then
+#     BOOT_START_TIME=$(date +%s)
+#     if [[ "$OSTYPE" == "darwin"* ]]; then
+#         if command -v gdate &>/dev/null; then
+#             BOOT_START_MS=$(gdate +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
+#         else
+#             BOOT_START_MS=$((BOOT_START_TIME * 1000))
+#         fi
+#     else
+#         BOOT_START_MS=$(date +%s%3N 2>/dev/null || echo "$((BOOT_START_TIME * 1000))")
+#     fi
+#
+#     # Ensure BOOT_START_MS is never empty
+#     : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
+# fi
+#
+# # Export so child processes (module scripts) inherit it
+# export BOOT_START_MS
 
 # Current module context
 CURRENT_MODULE=""
@@ -89,55 +89,49 @@ log_init() {
 }
 
 # =============================================================================
-# Time Formatting
+# Time Formatting - DISABLED FOR DEBUGGING
 # =============================================================================
 
-# Get elapsed time in seconds with millisecond precision
-get_elapsed_ms() {
-    local current_ms=""
-    local current_sec=""
-    local boot_start="${BOOT_START_MS:-0}"
-
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v gdate &>/dev/null 2>&1; then
-            current_ms=$(gdate +%s%3N 2>/dev/null || echo "")
-        fi
-        if [[ -z "$current_ms" ]]; then
-            current_sec=$(date +%s 2>/dev/null || echo "")
-            if [[ -n "$current_sec" ]]; then
-                current_ms=$((current_sec * 1000))
-            else
-                current_ms=0
-            fi
-        fi
-    else
-        current_ms=$(date +%s%3N 2>/dev/null || echo "")
-        if [[ -z "$current_ms" ]]; then
-            current_sec=$(date +%s 2>/dev/null || echo "")
-            if [[ -n "$current_sec" ]]; then
-                current_ms=$((current_sec * 1000))
-            else
-                current_ms=0
-            fi
-        fi
-    fi
-
-    # Final safety check
-    current_ms=${current_ms:-0}
-
-    echo $((current_ms - boot_start))
-}
+# # Get elapsed time in seconds with millisecond precision
+# get_elapsed_ms() {
+#     local current_ms=""
+#     local current_sec=""
+#     local boot_start="${BOOT_START_MS:-0}"
+#
+#     if [[ "$OSTYPE" == "darwin"* ]]; then
+#         if command -v gdate &>/dev/null 2>&1; then
+#             current_ms=$(gdate +%s%3N 2>/dev/null || echo "")
+#         fi
+#         if [[ -z "$current_ms" ]]; then
+#             current_sec=$(date +%s 2>/dev/null || echo "")
+#             if [[ -n "$current_sec" ]]; then
+#                 current_ms=$((current_sec * 1000))
+#             else
+#                 current_ms=0
+#             fi
+#         fi
+#     else
+#         current_ms=$(date +%s%3N 2>/dev/null || echo "")
+#         if [[ -z "$current_ms" ]]; then
+#             current_sec=$(date +%s 2>/dev/null || echo "")
+#             if [[ -n "$current_sec" ]]; then
+#                 current_ms=$((current_sec * 1000))
+#             else
+#                 current_ms=0
+#             fi
+#         fi
+#     fi
+#
+#     # Final safety check
+#     current_ms=${current_ms:-0}
+#
+#     echo $((current_ms - boot_start))
+# }
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
+# DISABLED - just return empty string, all calls should handle this gracefully
 format_boot_time() {
-    # Temporarily disabled for debugging - return safe placeholder
-    echo "[     .   ]"
-    return
-
-    local elapsed_ms=$(get_elapsed_ms)
-    local seconds=$((elapsed_ms / 1000))
-    local millis=$((elapsed_ms % 1000))
-    printf "[%5d.%03d]" $seconds $millis
+    echo ""
 }
 
 # =============================================================================
@@ -383,4 +377,5 @@ log_tail() {
 export -f log_init log_info log_success log_warn log_error log_progress
 export -f log_section log_module_start log_module_end log_summary
 export -f log_show log_show_errors log_clear log_tail
-export -f log_to_file get_elapsed_ms format_boot_time
+export -f log_to_file format_boot_time
+# get_elapsed_ms commented out for debugging

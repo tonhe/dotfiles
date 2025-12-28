@@ -34,6 +34,9 @@ if [[ -z "${BOOT_START_MS}" ]]; then
     : ${BOOT_START_MS:=$((BOOT_START_TIME * 1000))}
 fi
 
+# Export so child processes (module scripts) inherit it
+export BOOT_START_MS
+
 # Current module context
 CURRENT_MODULE=""
 
@@ -91,33 +94,38 @@ log_init() {
 
 # Get elapsed time in seconds with millisecond precision
 get_elapsed_ms() {
-    local current_ms
-    local current_sec
+    local current_ms=""
+    local current_sec=""
+    local boot_start="${BOOT_START_MS:-0}"
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v gdate &>/dev/null; then
-            current_ms=$(gdate +%s%3N 2>/dev/null)
-            if [[ -z "$current_ms" ]]; then
-                current_sec=$(date +%s 2>/dev/null || echo "0")
+        if command -v gdate &>/dev/null 2>&1; then
+            current_ms=$(gdate +%s%3N 2>/dev/null || echo "")
+        fi
+        if [[ -z "$current_ms" ]]; then
+            current_sec=$(date +%s 2>/dev/null || echo "")
+            if [[ -n "$current_sec" ]]; then
                 current_ms=$((current_sec * 1000))
+            else
+                current_ms=0
             fi
-        else
-            current_sec=$(date +%s 2>/dev/null || echo "0")
-            current_ms=$((current_sec * 1000))
         fi
     else
-        current_ms=$(date +%s%3N 2>/dev/null)
+        current_ms=$(date +%s%3N 2>/dev/null || echo "")
         if [[ -z "$current_ms" ]]; then
-            current_sec=$(date +%s 2>/dev/null || echo "0")
-            current_ms=$((current_sec * 1000))
+            current_sec=$(date +%s 2>/dev/null || echo "")
+            if [[ -n "$current_sec" ]]; then
+                current_ms=$((current_sec * 1000))
+            else
+                current_ms=0
+            fi
         fi
     fi
 
-    # Ensure we have valid numbers
-    : ${current_ms:=0}
-    : ${BOOT_START_MS:=0}
+    # Final safety check
+    current_ms=${current_ms:-0}
 
-    echo $((current_ms - BOOT_START_MS))
+    echo $((current_ms - boot_start))
 }
 
 # Format milliseconds as boot-style timestamp [    X.XXX]

@@ -602,9 +602,14 @@ init_dotfiles() {
 
             # Then apply the dotfiles
             info "Applying dotfiles to home directory..."
-            if ! chezmoi apply; then
+            echo ""
+
+            # Run chezmoi apply with verbose output so user can see what's happening
+            if ! chezmoi apply --verbose; then
+                echo ""
                 warn "Some dotfiles could not be applied. You may need to run 'chezmoi apply' manually."
             else
+                echo ""
                 success "Dotfiles applied successfully"
             fi
         fi

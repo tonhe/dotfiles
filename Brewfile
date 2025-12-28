@@ -105,7 +105,6 @@ brew "tree"             # Directory tree
 brew "wget"             # HTTP client
 brew "curl"             # HTTP client
 brew "grex"             # Regex generator
-brew "claude"       # Claude AI CLI
 
 # Node.js (for NVChad LSP, etc.)
 brew "node"
@@ -127,7 +126,7 @@ cask "bartender"
 #cask "domzilla-caffeine" # Need to look into this
 cask "firefox"
 cask "discord"
-cask "tailscale"
+#cask "tailscale"        # Requires sudo password interactively
 #cask "iterm2"           # Terminal emulator
 #cask "raycast"          # Spotlight replacement
 cask "visual-studio-code"

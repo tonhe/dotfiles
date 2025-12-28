@@ -64,16 +64,15 @@ install() {
     fi
 
     log_info "Installing packages from Brewfile..."
-    start_spinner "Running brew bundle"
 
-    if brew bundle --file="$brewfile" &>/dev/null; then
-        stop_spinner
+    # Run brew bundle with output visible
+    if brew bundle --file="$brewfile"; then
         log_success "Brewfile packages installed"
     else
-        stop_spinner
-        log_warn "Some packages may have failed to install"
-        log_info "Run 'brew bundle --file=$brewfile' for details"
-        return 1
+        local exit_code=$?
+        log_warn "Some packages failed to install (exit code: $exit_code)"
+        log_info "Continuing with successfully installed packages..."
+        # Don't fail - partial installation is acceptable
     fi
 
     # Save state
@@ -114,16 +113,14 @@ reconfigure() {
         return 1
     fi
 
-    start_spinner "Running brew bundle"
-    if brew bundle --file="$brewfile" &>/dev/null; then
-        stop_spinner
+    log_info "Updating packages from Brewfile..."
+    if brew bundle --file="$brewfile"; then
         log_success "Brewfile packages updated"
-        return 0
     else
-        stop_spinner
-        log_warn "Some packages may have failed"
-        return 1
+        log_warn "Some packages failed to update"
+        log_info "Continuing with successfully updated packages..."
     fi
+    return 0
 }
 
 verify() {

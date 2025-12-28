@@ -63,6 +63,28 @@ draw_box() {
     echo -e "${BOX_D_BR}${NC}"
 }
 
+# Draw an error/failure box - single line, fixed width
+# Usage: draw_failure_box "module-name"
+draw_failure_box() {
+    local module="$1"
+    local width=62
+    local text="FAILED: ${module}"
+    local text_len=${#text}
+    local padding=$((width - text_len - 4))
+
+    echo -ne "${ERROR}${BOX_D_TL}"
+    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
+    echo -e "${BOX_D_TR}${NC}"
+
+    echo -ne "${ERROR}${BOX_D_V}${NC}  ${text}"
+    printf "%*s" $((padding + 2)) ""
+    echo -e "${ERROR}${BOX_D_V}${NC}"
+
+    echo -ne "${ERROR}${BOX_D_BL}"
+    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
+    echo -e "${BOX_D_BR}${NC}"
+}
+
 # =============================================================================
 # Spinner Animation
 # =============================================================================

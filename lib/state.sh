@@ -14,7 +14,7 @@ fi
 # =============================================================================
 # Configuration
 # =============================================================================
-DOTFILES_HOME="${HOME}/.dotfiles"
+DOTFILES_HOME="${DOTFILES_HOME:-${HOME}/.dotfiles}"
 STATE_DIR="${DOTFILES_HOME}/state"
 METADATA_FILE="${DOTFILES_HOME}/metadata.json"
 USER_CONF="${DOTFILES_HOME}/user.conf"

@@ -176,13 +176,10 @@ log_error() {
     ((STATS_FAILED++))
 
     # Console output with error box
-    echo -e "${DIM}${timestamp}${NC} ${ERROR}${BOX_D_TL}$(printf '%.0s═' {1..60})${BOX_D_TR}${NC}"
     if [[ -n "${CURRENT_MODULE}" ]]; then
-        echo -e "${DIM}${timestamp}${NC} ${ERROR}${BOX_D_V}  FAILED: ${CURRENT_MODULE}$(printf '%*s' $((55 - ${#CURRENT_MODULE})) '')${BOX_D_V}${NC}"
-    else
-        echo -e "${DIM}${timestamp}${NC} ${ERROR}${BOX_D_V}  FATAL ERROR$(printf '%*s' 47 '')${BOX_D_V}${NC}"
+        echo -en "${DIM}${timestamp}${NC} "
+        draw_failure_box "${CURRENT_MODULE}"
     fi
-    echo -e "${DIM}${timestamp}${NC} ${ERROR}${BOX_D_BL}$(printf '%.0s═' {1..60})${BOX_D_BR}${NC}"
     echo -e "${DIM}${timestamp}${NC} ${ERROR}${SYMBOL_ERROR}${NC} ${TEXT}${message}${NC}"
 
     # File output

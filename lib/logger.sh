@@ -175,10 +175,15 @@ log_error() {
     local timestamp=$(format_boot_time)
     ((STATS_FAILED++))
 
-    # Console output with error box
+    # Console output with error box (inline, fixed width 62 chars)
     if [[ -n "${CURRENT_MODULE}" ]]; then
-        echo -en "${DIM}${timestamp}${NC} "
-        draw_failure_box "${CURRENT_MODULE}"
+        local text="FAILED: ${CURRENT_MODULE}"
+        local text_len=${#text}
+        local padding=$((58 - text_len))
+
+        echo -e "${DIM}${timestamp}${NC} ${ERROR}┌$(printf '%.0s─' {1..60})┐${NC}"
+        echo -e "${DIM}${timestamp}${NC} ${ERROR}│${NC}  ${text}$(printf "%*s" $padding "")  ${ERROR}│${NC}"
+        echo -e "${DIM}${timestamp}${NC} ${ERROR}└$(printf '%.0s─' {1..60})┘${NC}"
     fi
     echo -e "${DIM}${timestamp}${NC} ${ERROR}${SYMBOL_ERROR}${NC} ${TEXT}${message}${NC}"
 

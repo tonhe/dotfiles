@@ -36,13 +36,15 @@ ensure_brew_path() {
 # =============================================================================
 
 is_installed() {
-    local state_file="${DOTFILES_HOME}/state/brewfile.json"
-    [[ -f "$state_file" ]]
+    # Brewfile can never be "detected" on the system - it must always install
+    # This ensures install() runs during first-time setup
+    # The state file check (in module_install) will skip it on subsequent runs
+    return 1
 }
 
 get_version() {
     local state_file="${DOTFILES_HOME}/state/brewfile.json"
-    if is_installed; then
+    if [[ -f "$state_file" ]]; then
         local install_date=$(json_get "$state_file" "['installed_date']" 2>/dev/null || echo "")
         echo "${install_date:-installed}"
     else

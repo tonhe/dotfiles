@@ -18,6 +18,7 @@ brew "tpm"              # Tmux Plugin Manager
 brew "zsh"              # Shell
 brew "telnet"           # Telnet client
 brew "alacritty"        # Terminal emulator
+brew "bat"             # Better cat
 
 # random fun shit
 brew "lolcat"           # Rainbow coloring for terminal output

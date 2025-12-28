@@ -36,8 +36,8 @@ if [ ! -f "$HOME/.config/nvim/init.lua" ]; then
         fi
     fi
 
-    # Clone NvChad
-    git clone https://github.com/NvChad/NvChad ~/.config/nvim --depth 1
+    # Clone NvChad starter template
+    git clone https://github.com/NvChad/starter ~/.config/nvim --depth 1
 
     # Restore our custom config
     if [ -d "$HOME/.config/nvim-lua-backup" ]; then

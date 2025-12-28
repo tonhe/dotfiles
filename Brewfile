@@ -4,8 +4,9 @@
 # -----------------------------------------------------------------------------
 # Taps
 # -----------------------------------------------------------------------------
-tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
+# no longer needed
+#tap "homebrew/bundle"
+#tap "homebrew/cask-fonts"
 
 # -----------------------------------------------------------------------------
 # CLI Tools
@@ -16,7 +17,7 @@ brew "tmux"             # Terminal multiplexer
 brew "tpm"              # Tmux Plugin Manager
 brew "zsh"              # Shell
 brew "telnet"           # Telnet client
-brew "alacritty"        # Terminal emulator
+#brew "alacritty"        # Terminal emulator
 brew "bat"             # Better cat
 
 # random fun shit
@@ -35,7 +36,7 @@ brew "arp-scan"          # ARP scanning and fingerprinting
 # Packet capture & analysis
 brew "wireshark"         # Network protocol analyzer (CLI + GUI)
 brew "tcpdump"           # Packet analyzer
-brew "tshark"            # Terminal-based Wireshark
+#brew "tshark"            # Terminal-based Wireshark
 
 # Network diagnostics & testing
 brew "mtr"               # Network diagnostic tool (traceroute + ping)
@@ -48,7 +49,7 @@ brew "snitch"            # Network monitor for macOS
 
 # DNS tools
 brew "bind"              # DNS tools (dig, nslookup, host)
-brew "dog"               # Modern DNS client (dig replacement)
+#brew "dog"               # Modern DNS client (dig replacement)
 brew "dnsmasq"           # Lightweight DNS forwarder
 
 # HTTP/API testing
@@ -72,7 +73,7 @@ brew "aircrack-ng"       # WiFi security auditing tools suite
 # VPN & tunneling
 brew "openvpn"           # SSL/TLS VPN
 brew "wireguard-tools"   # Fast, modern VPN tools
-brew "ngrok"             # Secure tunneling to localhost
+#brew "ngrok"             # Secure tunneling to localhost
 
 # TLS/SSL tools
 brew "openssl@3"         # Cryptography and SSL/TLS toolkit

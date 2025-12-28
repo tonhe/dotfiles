@@ -16,11 +16,12 @@ brew "neovim"           # Editor
 brew "tmux"             # Terminal multiplexer
 brew "tpm"              # Tmux Plugin Manager
 brew "zsh"              # Shell
-brew "telnet"
+brew "telnet"           # Telnet client
+brew "alacritty"        # Terminal emulator
 
 # random fun shit
-brew "lolcat"
-brew "figlet"
+brew "lolcat"           # Rainbow coloring for terminal output
+brew "figlet"           # ASCII art text generator
 
 # -----------------------------------------------------------------------------
 # Network Engineering & Security Tools
@@ -43,7 +44,7 @@ brew "netcat"            # Networking utility for reading/writing network connec
 brew "socat"             # Multipurpose relay (SOcket CAT)
 brew "speedtest-cli"     # Command line internet speed test
 brew "ipcalc"            # IP subnet calculator
-brew "snitch"
+brew "snitch"            # Network monitor for macOS 
 
 # DNS tools
 brew "bind"              # DNS tools (dig, nslookup, host)
@@ -103,7 +104,8 @@ brew "starship"         # Cross-shell prompt
 brew "tree"             # Directory tree
 brew "wget"             # HTTP client
 brew "curl"             # HTTP client
-brew "grex"
+brew "grex"             # Regex generator
+brew "claude"       # Claude AI CLI
 
 # Node.js (for NVChad LSP, etc.)
 brew "node"
@@ -116,7 +118,7 @@ brew "python@3.12"
 #brew "zsh-autosuggestions"
 #brew "zsh-syntax-highlighting"
 
-brew "claude"
+
 # -----------------------------------------------------------------------------
 # Applications (Casks)
 # -----------------------------------------------------------------------------

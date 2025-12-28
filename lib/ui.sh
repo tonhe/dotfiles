@@ -8,7 +8,19 @@
 _UI_SH_LOADED=1
 
 # Source dependencies if not already loaded
-[[ -z "${NORD0}" ]] && source "${HOME}/.dotfiles/repo/lib/colors.sh" 2>/dev/null
+if [[ -z "${NORD0}" ]]; then
+    # Determine lib directory
+    if [[ -z "${DOTFILES_LIB_DIR}" ]]; then
+        _ui_sh_dir=$(dirname "${BASH_SOURCE[0]}" 2>/dev/null)
+        if [[ -n "${_ui_sh_dir}" ]] && cd "${_ui_sh_dir}" 2>/dev/null; then
+            DOTFILES_LIB_DIR=$(pwd)
+            cd - >/dev/null 2>&1
+        else
+            DOTFILES_LIB_DIR="${HOME}/.dotfiles/repo/lib"
+        fi
+    fi
+    source "${DOTFILES_LIB_DIR}/colors.sh" 2>/dev/null || source "${HOME}/.dotfiles/repo/lib/colors.sh"
+fi
 
 # =============================================================================
 # ASCII Art Banner

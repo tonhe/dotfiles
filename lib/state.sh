@@ -10,9 +10,13 @@ _STATE_SH_LOADED=1
 
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then
-    SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
-    source "${SCRIPT_DIR}/colors.sh"
-    source "${SCRIPT_DIR}/utils.sh"
+    # Determine lib directory
+    if [[ -z "${DOTFILES_LIB_DIR}" ]]; then
+        DOTFILES_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+        [[ -z "${DOTFILES_LIB_DIR}" ]] && DOTFILES_LIB_DIR="${HOME}/.dotfiles/repo/lib"
+    fi
+    source "${DOTFILES_LIB_DIR}/colors.sh"
+    source "${DOTFILES_LIB_DIR}/utils.sh"
 fi
 
 # =============================================================================

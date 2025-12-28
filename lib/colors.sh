@@ -5,6 +5,15 @@
 # Nord color palette - muted, professional, easy on the eyes
 # https://www.nordtheme.com/
 
+# Set the lib directory location for other lib files to use
+if [[ -z "${DOTFILES_LIB_DIR}" ]]; then
+    DOTFILES_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+    if [[ -z "${DOTFILES_LIB_DIR}" ]]; then
+        DOTFILES_LIB_DIR="${HOME}/.dotfiles/repo/lib"
+    fi
+    export DOTFILES_LIB_DIR
+fi
+
 # =============================================================================
 # Nord Palette
 # =============================================================================

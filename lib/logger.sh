@@ -9,8 +9,12 @@ _LOGGER_SH_LOADED=1
 
 # Source colors if not already loaded
 if [[ -z "${NORD0}" ]]; then
-    SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
-    source "${SCRIPT_DIR}/colors.sh"
+    # Determine lib directory
+    if [[ -z "${DOTFILES_LIB_DIR}" ]]; then
+        DOTFILES_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+        [[ -z "${DOTFILES_LIB_DIR}" ]] && DOTFILES_LIB_DIR="${HOME}/.dotfiles/repo/lib"
+    fi
+    source "${DOTFILES_LIB_DIR}/colors.sh"
 fi
 
 # =============================================================================
@@ -147,7 +151,7 @@ log_to_file() {
     local level=$1
     shift
     local message="$*"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "UNKNOWN")
 
     local log_line="${timestamp} [${level}]"
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -155,7 +159,11 @@ log_to_file() {
     fi
     log_line="${log_line} ${message}"
 
-    echo "${log_line}" >> "${LOG_FILE}"
+    # Ensure log file directory exists and is writable
+    if [[ -n "${LOG_FILE}" ]] && [[ -d "$(dirname "${LOG_FILE}")" ]]; then
+        echo "${log_line}" >> "${LOG_FILE}" 2>/dev/null || return 0
+    fi
+    return 0
 }
 
 # Log and print INFO level

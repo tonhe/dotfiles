@@ -978,7 +978,7 @@ main() {
     unstage = reset HEAD --
 
     # Cleanup
-    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | xargs -n 1 git branch -d"
+    cleanup = "!git branch --merged | grep -v '\\\\*\\\\|main\\\\|master' | xargs -n 1 git branch -d"
 
 [credential]
     helper = osxkeychain

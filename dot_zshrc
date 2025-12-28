@@ -11,34 +11,47 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.config}/zinit/zinit.git"
 # Download Zinit, if it's not there yet
 if [ ! -d "$ZINIT_HOME" ]; then
    mkdir -p "$(dirname $ZINIT_HOME)"
-   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+   if command -v git &>/dev/null; then
+      git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+   else
+      echo "Warning: git not found, cannot install zinit"
+   fi
 fi
 
-# Source/Load zinit
-source "${ZINIT_HOME}/zinit.zsh"
+# Source/Load zinit only if it exists
+if [ -f "${ZINIT_HOME}/zinit.zsh" ]; then
+   source "${ZINIT_HOME}/zinit.zsh"
+else
+   echo "Warning: zinit not installed at ${ZINIT_HOME}/zinit.zsh"
+fi
 
-# Add in Starship
-zinit ice depth=1; zinit light wintermi/zsh-starship
+# Only load zinit plugins if zinit is available
+if command -v zinit &>/dev/null; then
+   # Add in Starship
+   zinit ice depth=1; zinit light wintermi/zsh-starship
 
-# Add in zsh plugins
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
-zinit light Aloxaf/fzf-tab
+   # Add in zsh plugins
+   zinit light zsh-users/zsh-syntax-highlighting
+   zinit light zsh-users/zsh-completions
+   zinit light zsh-users/zsh-autosuggestions
+   zinit light Aloxaf/fzf-tab
 
-# Add in snippets
-zinit snippet OMZL::git.zsh
-zinit snippet OMZP::git
-zinit snippet OMZP::sudo
-zinit snippet OMZP::command-not-found
+   # Add in snippets
+   zinit snippet OMZL::git.zsh
+   zinit snippet OMZP::git
+   zinit snippet OMZP::sudo
+   zinit snippet OMZP::command-not-found
 
-# Load completions
-autoload -Uz compinit && compinit
+   # Load completions
+   autoload -Uz compinit && compinit
 
-zinit cdreplay -q
+   zinit cdreplay -q
+fi
 
-# Starship Theme
-eval "$(starship init zsh)"
+# Starship Theme (if installed)
+if command -v starship &>/dev/null; then
+   eval "$(starship init zsh)"
+fi
 
 # Keybindings
 bindkey -e
@@ -73,7 +86,12 @@ alias c='clear'
 #alias cd='z'
 alias tailscale='/Applications/Tailscale.app/Contents/MacOS/Tailscale'
 
-# Shell integrations
-eval "$(fzf --zsh)"
-eval "$(zoxide init --cmd cd zsh)"
+# Shell integrations (if installed)
+if command -v fzf &>/dev/null; then
+   eval "$(fzf --zsh)"
+fi
+
+if command -v zoxide &>/dev/null; then
+   eval "$(zoxide init --cmd cd zsh)"
+fi
 

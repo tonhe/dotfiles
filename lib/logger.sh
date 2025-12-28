@@ -129,9 +129,9 @@ log_init() {
 # }
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
-# DISABLED - just return empty string, all calls should handle this gracefully
+# DISABLED - return nothing (don't echo anything)
 format_boot_time() {
-    echo ""
+    return 0
 }
 
 # =============================================================================

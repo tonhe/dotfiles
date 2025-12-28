@@ -179,7 +179,7 @@ log_error() {
     if [[ -n "${CURRENT_MODULE}" ]]; then
         local text="FAILED: ${CURRENT_MODULE}"
         local text_len=${#text}
-        local padding=$((58 - text_len))
+        local padding=$((56 - text_len))
 
         echo -e "${DIM}${timestamp}${NC} ${ERROR}┌$(printf '%.0s─' {1..60})┐${NC}"
         echo -e "${DIM}${timestamp}${NC} ${ERROR}│${NC}  ${text}$(printf "%*s" $padding "")  ${ERROR}│${NC}"

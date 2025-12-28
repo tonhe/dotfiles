@@ -834,9 +834,9 @@ main() {
     detect_os
 
     if [[ "$OS" == "macos" ]]; then
-        TOTAL_STEPS=7
+        TOTAL_STEPS=8  # Includes potential "Configuring Personal Information" step
     else
-        TOTAL_STEPS=6
+        TOTAL_STEPS=7  # Includes potential "Configuring Personal Information" step
     fi
 
     # Separator
@@ -892,10 +892,11 @@ main() {
             echo ""
 
             # Prompt for user information
-            read -p "  Enter your full name: " user_name
-            read -p "  Enter your email address: " user_email
-            read -p "  Enter your GitHub username: " github_user
-            read -p "  Machine type (personal/work) [personal]: " machine_type
+            # Redirect from /dev/tty to allow interactive input even when piped
+            read -p "  Enter your full name: " user_name < /dev/tty
+            read -p "  Enter your email address: " user_email < /dev/tty
+            read -p "  Enter your GitHub username: " github_user < /dev/tty
+            read -p "  Machine type (personal/work) [personal]: " machine_type < /dev/tty
             machine_type=${machine_type:-personal}
 
             # Create .chezmoidata.toml

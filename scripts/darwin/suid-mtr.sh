@@ -46,7 +46,16 @@ reconfigure() { install; }
 verify() { is_installed; }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    [[ -z "${NORD0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../lib" && pwd)/"{colors,logger,ui,utils,state}.sh
+    if [[ -z "${NORD0}" ]]; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        LIB_DIR="$(cd "${SCRIPT_DIR}/../../lib" && pwd)"
+        source "${LIB_DIR}/colors.sh"
+        source "${LIB_DIR}/logger.sh"
+        source "${LIB_DIR}/ui.sh"
+        source "${LIB_DIR}/utils.sh"
+        source "${LIB_DIR}/state.sh"
+    fi
+    export DOTFILES_HOME="${DOTFILES_HOME:-${HOME}/.dotfiles}"
     case "${1:-}" in
         check) is_installed; exit $? ;;
         version) get_version; exit $? ;;

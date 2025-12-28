@@ -45,7 +45,7 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 
 **Or via curl:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOURUSERNAME/dotfiles/main/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/refs/heads/main/bootstrap.sh | bash
 ```
 
 ### Already Have Homebrew & Chezmoi

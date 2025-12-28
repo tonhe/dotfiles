@@ -16,7 +16,7 @@
 
 set -e
 
-DOTFILES_REPO="https://github.com/YOURUSERNAME/dotfiles.git"
+DOTFILES_REPO="https://github.com/tonhe/dotfiles.git"
 START_TIME=$(date +%s)
 DRY_RUN=false
 

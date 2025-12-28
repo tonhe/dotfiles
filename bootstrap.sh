@@ -897,28 +897,114 @@ main() {
         print_step "Initializing Dotfiles"
         init_dotfiles
 
-        # Create .chezmoi.toml.tmpl in the chezmoi source directory after cloning
-        # This file uses the [data] section to store template variables
-        if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoi.toml.tmpl" ]]; then
-            cat > "$HOME/.local/share/chezmoi/.chezmoi.toml.tmpl" <<EOF
-# Chezmoi configuration and template data
-# This file is gitignored to keep your personal info private
+        # Generate .gitconfig directly (not managed by chezmoi templates)
+        if [[ ! -f "$HOME/.gitconfig" ]]; then
+            info "Creating .gitconfig with your information..."
+            cat > "$HOME/.gitconfig" <<EOF
+[user]
+    name = $user_name
+    email = $user_email
 
-[data]
-name = "$user_name"
-email = "$user_email"
-github_username = "$github_user"
-machine_type = "$machine_type"
+[init]
+    defaultBranch = main
+
+[core]
+    editor = nvim
+    pager = delta
+    excludesfile = ~/.gitignore_global
+    autocrlf = input
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    light = false
+    side-by-side = true
+    line-numbers = true
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default
+
+[pull]
+    rebase = true
+
+[push]
+    autoSetupRemote = true
+    default = current
+
+[fetch]
+    prune = true
+
+[rebase]
+    autoStash = true
+
+[alias]
+    # Status
+    s = status -sb
+
+    # Logging
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    ll = log --oneline -n 20
+
+    # Branching
+    co = checkout
+    cob = checkout -b
+    br = branch
+    bra = branch -a
+
+    # Committing
+    cm = commit -m
+    ca = commit --amend
+    can = commit --amend --no-edit
+
+    # Diffing
+    d = diff
+    ds = diff --staged
+
+    # Stashing
+    st = stash
+    stp = stash pop
+    stl = stash list
+
+    # Undo
+    undo = reset HEAD~1 --mixed
+    unstage = reset HEAD --
+
+    # Cleanup
+    cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | xargs -n 1 git branch -d"
+
+[credential]
+    helper = osxkeychain
+
+[github]
+    user = $github_user
 EOF
-            info "Created personal data file"
 
-            # Now apply dotfiles with --init flag to regenerate config from template
-            info "Applying dotfiles with your information..."
-            if chezmoi apply --init; then
-                success "All dotfiles applied successfully"
-            else
-                warn "Some dotfiles could not be applied"
+            # Add work-specific config if needed
+            if [[ "$machine_type" == "work" ]]; then
+                cat >> "$HOME/.gitconfig" <<EOF
+
+# Work-specific git config
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+EOF
             fi
+
+            success "Created .gitconfig"
+        else
+            info ".gitconfig already exists, skipping"
+        fi
+
+        # Now apply remaining dotfiles
+        info "Applying dotfiles..."
+        if chezmoi apply; then
+            success "All dotfiles applied successfully"
+        else
+            warn "Some dotfiles could not be applied"
         fi
 
         print_step "Installing Brewfile Packages"

@@ -68,11 +68,30 @@ install() {
     if [[ -x "$brew_path" ]]; then
         eval "$($brew_path shellenv)"
         log_success "Homebrew installed successfully"
-        return 0
     else
         log_error "Homebrew binary not found after installation"
         return 1
     fi
+
+    # Install packages from Brewfile
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+    if [[ -f "$brewfile" ]]; then
+        log_info "Installing packages from Brewfile..."
+        start_spinner "Running brew bundle"
+
+        if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
+            stop_spinner
+            log_success "Brewfile packages installed"
+        else
+            stop_spinner
+            log_warn "Some Brewfile packages may have failed to install"
+            log_info "Check brew bundle output for details"
+        fi
+    else
+        log_warn "Brewfile not found at ${brewfile}"
+    fi
+
+    return 0
 }
 
 uninstall() {
@@ -96,7 +115,7 @@ uninstall() {
 }
 
 reconfigure() {
-    log_info "Updating Homebrew..."
+    log_info "Updating Homebrew and packages..."
 
     local brew_path=""
     if [[ -x "/opt/homebrew/bin/brew" ]]; then
@@ -108,8 +127,23 @@ reconfigure() {
     start_spinner "Updating Homebrew"
     $brew_path update &>/dev/null
     stop_spinner
-
     log_success "Homebrew updated"
+
+    # Re-run brew bundle to install any new packages
+    local brewfile="${DOTFILES_HOME}/repo/Brewfile"
+    if [[ -f "$brewfile" ]]; then
+        log_info "Installing/updating packages from Brewfile..."
+        start_spinner "Running brew bundle"
+
+        if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
+            stop_spinner
+            log_success "Brewfile packages updated"
+        else
+            stop_spinner
+            log_warn "Some Brewfile packages may have failed"
+        fi
+    fi
+
     return 0
 }
 

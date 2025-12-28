@@ -1,4 +1,4 @@
-# Dotfiles 2.0
+# Dotfiles
 
 ```
     ____        __  ____  __
@@ -7,16 +7,11 @@
  / /_/ / /_/ / /_/ __/ / /  __(__  )
 /_____/\____/\__/_/ /_/_/\___/____/
 
-    ___            __      __                   ___   ____
-   / _ )___  ___  / /____ / /________ ____     |__ \ / __ \
-  / _  / _ \/ _ \/ __(_-</ __/ __/ _ `/ _ \    __/ // / / /
- /____/\___/\___/\__/___/\__/_/  \_,_/ .__/   / __// /_/ /
-                                    /_/      /___(_)____/
 ```
 
-My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
+Personal dotfiles with modular bash-based installation system.
 
-**Cross-platform support:** macOS (Darwin) and Linux (APT-based distros)
+**Platform Support:** macOS (Darwin) | Linux (coming soon)
 
 ## What's Included
 
@@ -24,142 +19,206 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 - **Editor**: Neovim with [NVChad](https://nvchad.com/)
 - **Terminal Multiplexer**: Tmux with sensible defaults and extensive inline documentation
 - **Prompt**: [Starship](https://starship.rs/) cross-shell prompt
-- **macOS**: Sensible system defaults, bloatware removal, Terminal.app profile
-- **Linux**: APT package support with cross-platform package equivalents
-- **Fonts**: Nerd Fonts for icons and ligatures
-- **Documentation**: All configuration files include detailed inline comments explaining every setting
+- **macOS**: Sensible system defaults, bloatware removal, custom Terminal.app theme
+- **Utilities**: 25+ custom scripts in `~/bin/`
+- **Documentation**: All configuration files include detailed inline comments
 
 ## Quick Start
 
-### Fresh Install (macOS or Linux)
+### Fresh macOS Install
+
+One-line remote installation:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/refs/heads/main/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/main/bootstrap.sh | bash
 ```
+
+Or clone and run locally:
+
+```bash
+git clone https://github.com/tonhe/dotfiles.git ~/.dotfiles/repo
+cd ~/.dotfiles/repo
+./bootstrap.sh
+```
+
+The bootstrap will:
+1. Install Xcode Command Line Tools
+2. Install Homebrew and all packages
+3. Install NvChad (Neovim config)
+4. Apply macOS system preferences
+5. Copy all dotfiles to your home directory
+6. Set up `~/bin/` with custom scripts
+
+### Maintenance Mode
+
+After initial installation, run `bootstrap.sh` again for an interactive menu:
+
+```bash
+cd ~/.dotfiles/repo
+./bootstrap.sh
+```
+
+Options include:
+- **Update** - Pull latest changes and reconfigure
+- **Reconfigure** - Re-run specific modules
+- **Verify** - Check installation status
+- **Show Log** - View detailed logs
 
 ## Structure
 
 ```
 .
-├── bootstrap.sh                   # Enhanced setup script (cross-platform)
-├── Brewfile                       # Homebrew packages (macOS)
-├── Aptfile                        # APT packages (Linux)
-├── CROSS_PLATFORM_SETUP.md        # Cross-platform documentation
-├── dot_zshrc                      # Zsh configuration
-├── dot_gitconfig.tmpl             # Git config (templated)
-├── dot_gitignore_global           # Global gitignore
-├── dot_tmux.conf                  # Tmux configuration (extensively documented)
-├── dot_config/
-│   ├── nvim/                      # Neovim config (NVChad)
-│   └── starship.toml              # Starship prompt config
-└── .chezmoiscripts/
-    ├── run_once_darwin_macos-defaults.sh          # macOS system preferences
-    ├── run_once_darwin_remove-bloatware.sh        # Remove unwanted macOS apps
-    ├── run_once_darwin_setup-mtr.sh               # Configure mtr permissions
-    ├── run_once_darwin_setup-terminal-profile.sh  # Import Terminal.app profile
-    └── run_once_install-nvchad.sh                 # NVChad setup (cross-platform)
+├── bootstrap.sh              # Main installation script
+├── Brewfile                  # Homebrew packages (macOS)
+├── lib/                      # Core libraries (colors, logging, UI, etc.)
+├── scripts/                  # Installation modules
+│   ├── all/                  # Cross-platform modules
+│   │   ├── dotfiles.sh       # Copies config files and scripts
+│   │   └── nvchad.sh         # NvChad setup
+│   └── darwin/               # macOS-specific modules
+│       ├── xcode-cli.sh      # Xcode CLI Tools
+│       ├── homebrew.sh       # Homebrew installation
+│       ├── macos-defaults.sh # System preferences
+│       ├── setup-mtr.sh      # MTR network tool setup
+│       ├── terminal-profile.sh # Terminal theme
+│       └── remove-bloatware.sh # Remove unwanted apps
+├── dot_zshrc                 # Zsh configuration
+├── dot_tmux.conf             # Tmux config (heavily documented)
+├── dot_config/               # XDG config directory
+│   ├── nvim/                 # Neovim config
+│   ├── alacritty/            # Alacritty terminal config
+│   └── starship.toml         # Starship prompt
+└── private_bin/              # Custom scripts → ~/bin/
 ```
-
-**Naming Convention:**
-- `run_once_darwin_*.sh` - macOS-only scripts
-- `run_once_linux_*.sh` - Linux-only scripts
-- `run_once_*.sh` - Cross-platform scripts
 
 ## Customization
 
-### Local Overrides
+### Local Shell Overrides
 
-Add machine-specific shell config to `~/.zshrc.local` (not tracked).
+Create `~/.zshrc.local` for machine-specific configuration (not tracked):
 
-### Brewfile
+```bash
+# Example: Custom aliases or environment variables
+export EDITOR="code"
+alias myproject="cd ~/Projects/myproject"
+```
 
-Edit `Brewfile` to add/remove packages for your setup.
+### Package Management
+
+Edit `Brewfile` to add or remove packages:
+
+```ruby
+# Add your own packages
+brew "your-package"
+cask "your-app"
+```
+
+Then run `brew bundle` or re-run the bootstrap.
 
 ## Key Bindings
 
-### Tmux (prefix: Ctrl-Space)
+### Tmux (Prefix: Ctrl-Space)
 
 | Binding | Action |
 |---------|--------|
 | `prefix + \|` | Split vertical |
 | `prefix + -` | Split horizontal |
-| `Alt + ↑/↓/←/→` | Navigate panes (prefix-free) |
-| `Shift + ←/→` | Switch windows (prefix-free) |
+| `Alt + ↑/↓/←/→` | Navigate panes (no prefix!) |
+| `Shift + ←/→` | Switch windows (no prefix!) |
 | `prefix + H/J/K/L` | Resize panes |
 | `prefix + c` | New window |
 | `prefix + r` | Reload config |
 | `prefix + I` | Install plugins |
-| `Ctrl-v` | Toggle rectangle selection (copy mode) |
+| `Ctrl-v` | Toggle rectangle select (copy mode) |
 
 ### NvChad (Leader: Space)
-
-NvChad uses the spacebar as the leader key. Here are the most commonly used keybindings:
 
 | Binding | Action |
 |---------|--------|
 | `<leader>th` | Toggle theme picker |
-| `<leader>ff` | Find files (Telescope) |
-| `<leader>fw` | Find word (live grep) |
+| `<leader>ff` | Find files |
+| `<leader>fw` | Find word (grep) |
 | `<leader>fb` | Find buffers |
-| `<leader>fo` | Find old files (recent) |
-| `<leader>fz` | Find in current buffer |
-| `<leader>fm` | Format file (conform.nvim) |
+| `<leader>fo` | Recent files |
+| `<leader>fm` | Format file |
 | `<leader>ch` | Cheatsheet |
-| `<leader>e` | Toggle nvim-tree file explorer |
-| `<leader>h/v/n` | New horizontal/vertical split, new buffer |
-| `<leader>x` | Close buffer |
-| `<Tab>` | Next buffer |
-| `<Shift-Tab>` | Previous buffer |
-| `<Ctrl-n>` | Toggle nvim-tree |
+| `<leader>e` | Toggle file tree |
+| `<Ctrl-n>` | Toggle file tree |
 | `<Ctrl-s>` | Save file |
 | `gd` | Go to definition |
 | `gr` | Go to references |
-| `K` | Hover documentation |
-| `<leader>ra` | Rename symbol (LSP) |
+| `K` | Hover docs |
+| `<leader>ra` | Rename symbol |
 | `<leader>ca` | Code actions |
 
-**File Tree (nvim-tree):**
-- `a` - Create file/folder
-- `r` - Rename
-- `d` - Delete
-- `x` - Cut
-- `c` - Copy
-- `p` - Paste
-- `y` - Copy filename
-- `Y` - Copy relative path
+**File Tree:**
+- `a` - Create | `r` - Rename | `d` - Delete
+- `x` - Cut | `c` - Copy | `p` - Paste
+- `y` - Copy filename | `Y` - Copy path
 
-### Zsh Aliases
+### Zsh Aliases & Tools
 
-| Alias | Command |
-|-------|---------|
-| `ls` | `ls --color` |
+| Command | Mapped To |
+|---------|-----------|
+| `ls` | `eza` (modern ls) |
+| `cat` | `bat` (syntax highlighting) |
+| `cd` | `zoxide` (smart jumping) |
 | `vim` | `nvim` |
 | `c` | `clear` |
-| `cd` | `zoxide` (smart directory jumping) |
 
-## Cross-Platform Support
+**fzf integration:**
+- `Ctrl-R` - Command history search
+- `Ctrl-T` - File search
+- `Alt-C` - Directory search
 
-### macOS (Darwin)
-- Installs Xcode Command Line Tools
-- Installs Homebrew and packages from `Brewfile`
-- Applies macOS system preferences
-- Removes bloatware apps
-- Sets up Terminal.app profile
+## Post-Install
 
-### Linux (APT-based)
-- Detects package manager (currently supports APT)
-- Installs packages from `Aptfile`
-- Skips macOS-specific scripts
-- Runs cross-platform setup scripts
+1. **Restart terminal** or run `source ~/.zshrc`
+2. **Open Neovim** - Plugins install automatically. Run `:MasonInstallAll` for LSP servers
+3. **Start tmux** - Press `prefix + I` to install plugins
+4. **macOS**: Restart for all system preferences to take effect
 
-See [CROSS_PLATFORM_SETUP.md](CROSS_PLATFORM_SETUP.md) for detailed documentation.
+## Troubleshooting
 
-## Post-Install Steps
+### View logs
+```bash
+cat ~/.dotfiles/bootstrap.log
+```
 
-1. **Restart terminal** (or `source ~/.zshrc` / `source ~/.bashrc`)
-2. **Open Neovim** - most plugins install automatically - run :MasonInstallAll to finish plugin installation for Python env
-3. **Start tmux** - press `prefix + I` to install plugins
-4. **macOS only**: Restart your Mac for system defaults to take full effect
+### Re-run specific module
+```bash
+cd ~/.dotfiles/repo
+./scripts/darwin/homebrew.sh install  # Example
+```
+
+### Check module status
+```bash
+./scripts/all/dotfiles.sh check
+./scripts/darwin/macos-defaults.sh verify
+```
+
+### Clean reinstall
+```bash
+rm -rf ~/.dotfiles
+# Then run bootstrap again
+```
+
+## Advanced
+
+### Dry Run
+```bash
+./bootstrap.sh --dry-run
+```
+
+### Non-Interactive Mode
+```bash
+./bootstrap.sh --non-interactive
+```
+
+### Show Execution Log
+```bash
+./bootstrap.sh --show-log
+```
 
 ## License
 

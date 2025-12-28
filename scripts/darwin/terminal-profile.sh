@@ -14,17 +14,14 @@ get_version() { is_installed && echo "installed" || echo "not installed"; }
 
 install() {
     log_info "Importing Terminal profile..."
-    
+
     local profile_name="mySolarizedDark"
-    local profile_path=""
-    
-    # Find the profile file
-    if [[ -f "$HOME/mySolarizedDark.terminal" ]]; then
-        profile_path="$HOME/mySolarizedDark.terminal"
-    elif [[ -f "$DOTFILES_HOME/repo/mySolarizedDark.terminal" ]]; then
-        profile_path="$DOTFILES_HOME/repo/mySolarizedDark.terminal"
-    else
-        log_error "mySolarizedDark.terminal not found"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local profile_path="${script_dir}/assets/mySolarizedDark.terminal"
+
+    # Verify profile file exists
+    if [[ ! -f "$profile_path" ]]; then
+        log_error "Terminal profile not found at ${profile_path}"
         return 1
     fi
     

@@ -331,6 +331,12 @@ module_install() {
         return 0
     fi
 
+    # If module failed before, clear the failure and retry
+    if state_is_failed "$module"; then
+        log_info "${display_name} failed previously, retrying..."
+        state_remove "$module"
+    fi
+
     # Check if already installed on system (before checking dependencies)
     if module_is_installed "$module"; then
         local version=$(module_get_version "$module")

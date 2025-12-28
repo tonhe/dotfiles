@@ -612,9 +612,6 @@ init_dotfiles() {
                 error "Failed to clone dotfiles repository from ${DOTFILES_REPO}"
             fi
             success "Dotfiles repository cloned"
-
-            # Don't apply yet - we'll do that after creating .chezmoidata.toml
-            # This just clones the repo
         fi
     fi
 }

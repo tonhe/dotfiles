@@ -3,11 +3,12 @@
 # ui.sh - User Interface Functions (Spinners, Menus, Banners)
 # =============================================================================
 
+# Source guard - prevent double-sourcing
+[[ -n "${_UI_SH_LOADED}" ]] && return 0
+_UI_SH_LOADED=1
+
 # Source dependencies if not already loaded
-if [[ -z "${NORD0}" ]]; then
-    SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"
-    source "${SCRIPT_DIR}/colors.sh"
-fi
+[[ -z "${NORD0}" ]] && source "${HOME}/.dotfiles/repo/lib/colors.sh" 2>/dev/null
 
 # =============================================================================
 # ASCII Art Banner

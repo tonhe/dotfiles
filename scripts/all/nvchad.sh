@@ -153,8 +153,15 @@ verify() {
 # =============================================================================
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     if [[ -z "${NORD0}" ]]; then
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        LIB_DIR="$(cd "${SCRIPT_DIR}/../../lib" && pwd)"
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+        if [[ -z "$SCRIPT_DIR" ]]; then
+            echo "ERROR: Could not determine script directory" >&2
+            exit 1
+        fi
+        LIB_DIR="$(cd "${SCRIPT_DIR}/../../lib" 2>/dev/null && pwd)"
+        if [[ -z "$LIB_DIR" ]] || [[ ! -d "$LIB_DIR" ]]; then
+            LIB_DIR="${HOME}/.dotfiles/repo/lib"
+        fi
         source "${LIB_DIR}/colors.sh"
         source "${LIB_DIR}/logger.sh"
         source "${LIB_DIR}/ui.sh"

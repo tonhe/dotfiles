@@ -3,6 +3,10 @@
 # modules.sh - Module Discovery, Loading, and Dependency Resolution
 # =============================================================================
 # Compatible with bash 3.2+ (uses indexed arrays, not associative arrays)
+# Source guard - prevent double-sourcing
+[[ -n "${_MODULES_SH_LOADED}" ]] && return 0
+_MODULES_SH_LOADED=1
+
 
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then

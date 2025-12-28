@@ -3,6 +3,10 @@
 # utils.sh - Utility Functions
 # =============================================================================
 
+# Source guard - prevent double-sourcing
+[[ -n "${_UTILS_SH_LOADED}" ]] && return 0
+_UTILS_SH_LOADED=1
+
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then
     SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"

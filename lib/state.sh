@@ -3,6 +3,10 @@
 # state.sh - State Management System
 # =============================================================================
 # Manages module installation state, metadata, and configuration
+# Source guard - prevent double-sourcing
+[[ -n "${_STATE_SH_LOADED}" ]] && return 0
+_STATE_SH_LOADED=1
+
 
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then

@@ -3,6 +3,10 @@
 # logger.sh - Single-file logging system with boot-style output
 # =============================================================================
 
+# Source guard - prevent double-sourcing
+[[ -n "${_LOGGER_SH_LOADED}" ]] && return 0
+_LOGGER_SH_LOADED=1
+
 # Source colors if not already loaded
 if [[ -z "${NORD0}" ]]; then
     SCRIPT_DIR="${HOME}/.dotfiles/repo/lib"

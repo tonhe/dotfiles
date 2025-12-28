@@ -655,18 +655,27 @@ install_brew_packages() {
     local current_package=""
 
     # Install with progress
-    brew bundle --file="$brewfile" 2>&1 | while IFS= read -r line; do
+    # Use process substitution to avoid subshell and capture exit code
+    while IFS= read -r line; do
         # Extract package name from "Installing <package>" or "Using <package>"
         if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
             current_package="${BASH_REMATCH[1]}"
             ((current++))
             progress_bar $current $total "Installing: $current_package"
         fi
-    done
+    done < <(brew bundle --file="$brewfile" 2>&1)
+
+    local brew_exit_code=$?
 
     # Ensure progress reaches 100%
     progress_bar $total $total "Installing Homebrew packages"
-    success "Brewfile packages installed (${total} packages)"
+
+    if [ $brew_exit_code -eq 0 ]; then
+        success "Brewfile packages installed (${total} packages)"
+    else
+        warn "Some Brewfile packages failed to install (exit code: $brew_exit_code)"
+        info "You can run 'brew bundle --file=$brewfile' manually to retry"
+    fi
 }
 
 # =============================================================================
@@ -894,11 +903,10 @@ main() {
 # Chezmoi template data
 # This file is gitignored to keep your personal info private
 
-[data]
-    name = "$user_name"
-    email = "$user_email"
-    github_username = "$github_user"
-    machine_type = "$machine_type"
+name = "$user_name"
+email = "$user_email"
+github_username = "$github_user"
+machine_type = "$machine_type"
 EOF
             info "Created personal data file"
 

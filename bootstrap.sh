@@ -278,6 +278,9 @@ run_first_time_setup() {
         log_summary "SUCCESS_WITH_ERRORS"
     fi
 
+    # Update metadata to mark first run as complete
+    state_update_metadata
+
     # Next steps
     show_next_steps
 }

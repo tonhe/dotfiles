@@ -463,18 +463,8 @@ install_homebrew() {
             eval "$($brew_path shellenv)"
         fi
 
-        if [[ "$DRY_RUN" == false ]]; then
-            show_loading "Updating Homebrew" &
-            LOADING_PID=$!
-
-            if ! brew update &>/dev/null; then
-                kill_loading
-                warn "Failed to update Homebrew (continuing anyway)"
-            else
-                kill_loading
-                success "Homebrew updated"
-            fi
-        fi
+        # Don't update during bootstrap - can be slow and isn't critical
+        # Brewfile installation will work fine with existing brew version
     else
         if [[ "$DRY_RUN" == true ]]; then
             success "Homebrew package manager"

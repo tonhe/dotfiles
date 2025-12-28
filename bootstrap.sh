@@ -445,15 +445,35 @@ install_xcode_cli() {
 install_homebrew() {
     info "Checking for Homebrew..."
 
-    if command -v brew &>/dev/null; then
+    # Check if Homebrew is actually installed (check filesystem, not just PATH)
+    local brew_path=""
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        # Apple Silicon location
+        brew_path="/opt/homebrew/bin/brew"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        # Intel Mac location
+        brew_path="/usr/local/bin/brew"
+    fi
+
+    if [[ -n "$brew_path" ]]; then
         already_installed "Homebrew"
+
+        # Make sure it's in PATH for this session
+        if ! command -v brew &>/dev/null; then
+            eval "$($brew_path shellenv)"
+        fi
 
         if [[ "$DRY_RUN" == false ]]; then
             show_loading "Updating Homebrew" &
             LOADING_PID=$!
-            brew update &>/dev/null
-            kill_loading
-            success "Homebrew updated"
+
+            if ! brew update &>/dev/null; then
+                kill_loading
+                warn "Failed to update Homebrew (continuing anyway)"
+            else
+                kill_loading
+                success "Homebrew updated"
+            fi
         fi
     else
         if [[ "$DRY_RUN" == true ]]; then
@@ -468,11 +488,18 @@ install_homebrew() {
             spinner $brew_pid "Installing Homebrew"
             wait $brew_pid
 
-            # Add Homebrew to PATH for Apple Silicon Macs
+            # Add Homebrew to PATH for this session and future sessions
             if [[ $(uname -m) == "arm64" ]]; then
-                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
-                eval "$(/opt/homebrew/bin/brew shellenv)"
+                brew_path="/opt/homebrew/bin/brew"
+            else
+                brew_path="/usr/local/bin/brew"
             fi
+
+            # Add to shell profile if not already there
+            if ! grep -q "brew shellenv" "$HOME/.zprofile" 2>/dev/null; then
+                echo 'eval "$($brew_path shellenv)"' >> "$HOME/.zprofile"
+            fi
+            eval "$($brew_path shellenv)"
 
             success "Homebrew installed"
         fi
@@ -553,7 +580,8 @@ install_chezmoi() {
 # Initialize Dotfiles with Chezmoi
 # =============================================================================
 init_dotfiles() {
-    if [[ -d "$HOME/.local/share/chezmoi" ]]; then
+    # Check if chezmoi is already initialized with a valid git repo
+    if [[ -d "$HOME/.local/share/chezmoi/.git" ]]; then
         warn "Chezmoi already initialized, updating..."
 
         if [[ "$DRY_RUN" == false ]]; then
@@ -564,17 +592,31 @@ init_dotfiles() {
             success "Dotfiles updated"
         fi
     else
+        # If directory exists but isn't a git repo, remove it first
+        if [[ -d "$HOME/.local/share/chezmoi" ]] && [[ "$DRY_RUN" == false ]]; then
+            info "Removing empty chezmoi directory..."
+            rm -rf "$HOME/.local/share/chezmoi"
+        fi
+
         info "Initializing dotfiles from ${BOLD_CYAN}${DOTFILES_REPO}${NC}"
 
         if [[ "$DRY_RUN" == true ]]; then
             success "Clone and apply dotfiles from repository"
         else
-            show_loading "Cloning and applying dotfiles" &
-            LOADING_PID=$!
-            chezmoi init --apply "$DOTFILES_REPO" &>/dev/null
-            kill_loading
+            # First, just initialize (clone the repo)
+            info "Cloning dotfiles repository..."
+            if ! chezmoi init "$DOTFILES_REPO"; then
+                error "Failed to clone dotfiles repository from ${DOTFILES_REPO}"
+            fi
+            success "Dotfiles repository cloned"
 
-            success "Dotfiles initialized and applied"
+            # Then apply the dotfiles
+            info "Applying dotfiles to home directory..."
+            if ! chezmoi apply; then
+                warn "Some dotfiles could not be applied. You may need to run 'chezmoi apply' manually."
+            else
+                success "Dotfiles applied successfully"
+            fi
         fi
     fi
 }

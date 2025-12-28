@@ -250,12 +250,13 @@ display_module_status() {
         fi
     fi
 
-    # Box width: 67, content width: 65 (67 - 2 for │ borders)
-    # Layout: "  ○ module-name                  Status             "
-    # 2 (spaces) + 1 (symbol) + 1 (space) + 32 (module) + 1 (space) + 28 (status) = 65
+    # Box border: 69 chars total (┌ + 67 × ─ + ┐)
+    # Content line must also be 69 chars (│ + 67 content + │)
+    # Content layout: "  ○ module-name (32)              status (30)    "
+    # 2 + 1 + 1 + 32 + 1 + 30 = 67 chars between the │ symbols
 
     local status_info="${status_text}${info_text:+ }${info_text}"
-    printf "${SECTION}│${NC}  ${color}${symbol}${NC} %-32s %-28s${SECTION}│${NC}\n" "${module}" "${status_info}"
+    printf "${SECTION}│${NC}  ${color}${symbol}${NC} %-32s %-30s${SECTION}│${NC}\n" "${module}" "${status_info}"
 }
 
 # =============================================================================

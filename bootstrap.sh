@@ -662,12 +662,15 @@ install_brew_packages() {
     info "Installing packages from Brewfile..."
 
     local current=0
+    local current_package=""
 
     # Install with progress
     brew bundle --file="$brewfile" 2>&1 | while IFS= read -r line; do
-        if [[ "$line" =~ "Installing" ]] || [[ "$line" =~ "Using" ]]; then
+        # Extract package name from "Installing <package>" or "Using <package>"
+        if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
+            current_package="${BASH_REMATCH[1]}"
             ((current++))
-            progress_bar $current $total "Installing Homebrew packages"
+            progress_bar $current $total "Installing: $current_package"
         fi
     done
 
@@ -852,8 +855,18 @@ main() {
         sudo -v
         success "Sudo access granted"
 
-        # Keep sudo alive
-        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+        # Keep sudo alive in the background
+        # This runs every 50 seconds (well before the 5-minute timeout)
+        PARENT_PID=$$
+        (while true; do
+            sleep 50
+            # Check if parent process still exists, exit if not
+            if ! kill -0 "$PARENT_PID" 2>/dev/null; then
+                exit
+            fi
+            sudo -n true
+        done) &
+        SUDO_KEEPALIVE_PID=$!
     fi
 
     # Platform-specific steps
@@ -905,7 +918,14 @@ main() {
 }
 
 # Cleanup on exit
-trap 'kill_loading' EXIT
+cleanup() {
+    kill_loading
+    # Kill sudo keepalive process if it exists
+    if [ ! -z "$SUDO_KEEPALIVE_PID" ]; then
+        kill $SUDO_KEEPALIVE_PID 2>/dev/null
+    fi
+}
+trap 'cleanup' EXIT
 
 # Run main function
 main "$@"

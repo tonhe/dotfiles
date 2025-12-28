@@ -33,55 +33,9 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 
 ### Fresh Install (macOS or Linux)
 
-**Preview what would be installed (dry-run mode):**
-```bash
-./bootstrap.sh --dry-run
-```
-
-**Full installation:**
-```bash
-./bootstrap.sh
-```
-
-**Or via curl:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tonhe/dotfiles/refs/heads/main/bootstrap.sh | bash
 ```
-
-### Already Have Homebrew & Chezmoi
-
-```bash
-chezmoi init --apply YOURUSERNAME
-```
-
-## Bootstrap Script Features
-
-The enhanced `bootstrap.sh` script provides:
-
-- **Colorized output** with progress bars and spinners
-- **Smart package detection** (Homebrew on macOS, APT on Linux)
-- **Dry-run mode** (`--dry-run` or `--preview`) to preview changes without installing
-- **Status indicators** for installed, skipped, and already-present items
-- **Elapsed time tracking**
-- **Step-by-step progress** (7 steps on macOS, 6 on Linux)
-- **Cross-platform support** with automatic OS detection
-
-**Options:**
-- `--dry-run` or `--preview` - Preview what would be installed without making changes
-- `--help` or `-h` - Show help message
-
-### What It Looks Like
-
-The bootstrap script features a beautiful interface with:
-- ASCII art banner on startup
-- Color-coded status messages:
-  - Blue diamond `◆` - Items to be installed (dry-run)
-  - Green checkmark `✓` - Successfully installed / Already present
-  - Yellow warning `⚠` - Skipped items
-  - Gray circle `○` - Skipped in dry-run mode
-- Progress boxes showing current step (e.g., "STEP 3/7: Installing Homebrew")
-- Completion summary with elapsed time
-- Next steps box with clear instructions
 
 ## Structure
 
@@ -91,7 +45,6 @@ The bootstrap script features a beautiful interface with:
 ├── Brewfile                       # Homebrew packages (macOS)
 ├── Aptfile                        # APT packages (Linux)
 ├── CROSS_PLATFORM_SETUP.md        # Cross-platform documentation
-├── .chezmoi.toml.tmpl             # Chezmoi config template
 ├── dot_zshrc                      # Zsh configuration
 ├── dot_gitconfig.tmpl             # Git config (templated)
 ├── dot_gitignore_global           # Global gitignore
@@ -112,39 +65,7 @@ The bootstrap script features a beautiful interface with:
 - `run_once_linux_*.sh` - Linux-only scripts
 - `run_once_*.sh` - Cross-platform scripts
 
-## Chezmoi Basics
-
-```bash
-# See what would change
-chezmoi diff
-
-# Apply changes
-chezmoi apply
-
-# Edit a managed file
-chezmoi edit ~/.zshrc
-
-# Add a new file to be managed
-chezmoi add ~/.some-config
-
-# Update from remote
-chezmoi update
-
-# Re-run scripts
-chezmoi state delete-bucket --bucket=scriptState
-chezmoi apply
-```
-
 ## Customization
-
-### Machine-Specific Config
-
-The `.chezmoi.toml.tmpl` prompts for:
-- Your name and email (for git)
-- GitHub username
-- Machine type (personal/work)
-
-Work machines get additional git config for SSH.
 
 ### Local Overrides
 
@@ -170,15 +91,51 @@ Edit `Brewfile` to add/remove packages for your setup.
 | `prefix + I` | Install plugins |
 | `Ctrl-v` | Toggle rectangle selection (copy mode) |
 
+### NvChad (Leader: Space)
+
+NvChad uses the spacebar as the leader key. Here are the most commonly used keybindings:
+
+| Binding | Action |
+|---------|--------|
+| `<leader>th` | Toggle theme picker |
+| `<leader>ff` | Find files (Telescope) |
+| `<leader>fw` | Find word (live grep) |
+| `<leader>fb` | Find buffers |
+| `<leader>fo` | Find old files (recent) |
+| `<leader>fz` | Find in current buffer |
+| `<leader>fm` | Format file (conform.nvim) |
+| `<leader>ch` | Cheatsheet |
+| `<leader>e` | Toggle nvim-tree file explorer |
+| `<leader>h/v/n` | New horizontal/vertical split, new buffer |
+| `<leader>x` | Close buffer |
+| `<Tab>` | Next buffer |
+| `<Shift-Tab>` | Previous buffer |
+| `<Ctrl-n>` | Toggle nvim-tree |
+| `<Ctrl-s>` | Save file |
+| `gd` | Go to definition |
+| `gr` | Go to references |
+| `K` | Hover documentation |
+| `<leader>ra` | Rename symbol (LSP) |
+| `<leader>ca` | Code actions |
+
+**File Tree (nvim-tree):**
+- `a` - Create file/folder
+- `r` - Rename
+- `d` - Delete
+- `x` - Cut
+- `c` - Copy
+- `p` - Paste
+- `y` - Copy filename
+- `Y` - Copy relative path
+
 ### Zsh Aliases
 
 | Alias | Command |
 |-------|---------|
-| `ll` | `eza -la --icons --git` |
-| `lg` | `lazygit` |
-| `v` | `nvim` |
-| `cza` | `chezmoi apply` |
-| `cze` | `chezmoi edit` |
+| `ls` | `ls --color` |
+| `vim` | `nvim` |
+| `c` | `clear` |
+| `cd` | `zoxide` (smart directory jumping) |
 
 ## Cross-Platform Support
 
@@ -200,11 +157,9 @@ See [CROSS_PLATFORM_SETUP.md](CROSS_PLATFORM_SETUP.md) for detailed documentatio
 ## Post-Install Steps
 
 1. **Restart terminal** (or `source ~/.zshrc` / `source ~/.bashrc`)
-2. **Open Neovim** - plugins install automatically
+2. **Open Neovim** - most plugins install automatically - run :MasonInstallAll to finish plugin installation for Python env
 3. **Start tmux** - press `prefix + I` to install plugins
 4. **macOS only**: Restart your Mac for system defaults to take full effect
-5. **Review pending changes**: `chezmoi diff`
-6. **Apply any remaining changes**: `chezmoi apply`
 
 ## License
 

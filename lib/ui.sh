@@ -275,30 +275,32 @@ display_module_status() {
     esac
 
     # Format the line with proper spacing
-    # Truncate version to max 12 chars (including 'v' prefix)
+    # Truncate version to max 8 chars (including 'v' prefix)
     local version_display=""
     if [[ -n "${version}" ]]; then
-        if [[ ${#version} -gt 11 ]]; then
-            version_display="v${version:0:8}..."
+        if [[ ${#version} -gt 6 ]]; then
+            version_display="v${version:0:4}.."
         else
             version_display="v${version}"
         fi
     fi
 
-    # Truncate date to max 10 chars (YYYY-MM-DD format)
+    # Truncate date to 5 chars (MM-DD format)
     local date_display=""
     if [[ -n "${date}" ]]; then
-        date_display="${date:0:10}"
+        # Extract month and day from YYYY-MM-DD
+        date_display="${date:5:5}"
     fi
 
     # Build info_text with truncated values
+    # Max: status(9) + space(1) + version(8) + space(1) + date(5) = 24 chars
     local info_text=""
     if [[ -n "${version_display}" ]]; then
         info_text="${version_display}"
     fi
     if [[ -n "${date_display}" ]]; then
         if [[ -n "${info_text}" ]]; then
-            info_text="${info_text}  ${date_display}"
+            info_text="${info_text} ${date_display}"
         else
             info_text="${date_display}"
         fi

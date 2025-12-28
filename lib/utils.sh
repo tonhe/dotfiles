@@ -386,20 +386,23 @@ git_pull_latest() {
 # Request sudo access and keep it alive
 request_sudo() {
     # Request sudo upfront
-    sudo -v || return 1
+    if ! sudo -v; then
+        return 1
+    fi
 
     # Keep sudo alive in the background
     # Update timestamp every 50 seconds (before the 5-minute timeout)
     (
         while true; do
             sleep 50
-            sudo -n true
+            sudo -n true || exit
             kill -0 "$$" 2>/dev/null || exit
         done
     ) &
 
     SUDO_KEEPALIVE_PID=$!
-    export SUDO_KEEPALIVE_PID
+
+    # Explicitly return success
     return 0
 }
 

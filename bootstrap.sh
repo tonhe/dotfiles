@@ -203,10 +203,12 @@ run_first_time_setup() {
     if [[ "$DRY_RUN" == false ]]; then
         log_section "SYSTEM ACCESS"
         log_info "Some operations require administrator privileges"
+        log_info "DEBUG: About to call request_sudo..."
         if ! request_sudo; then
             log_error "Failed to obtain administrator privileges"
             return 1
         fi
+        log_info "DEBUG: request_sudo returned successfully"
         log_success "Administrator access granted"
     fi
 

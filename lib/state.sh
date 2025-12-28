@@ -6,7 +6,9 @@
 
 # Source dependencies if not already loaded
 if [[ -z "${NORD0}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -z "${SCRIPT_DIR}" ]]; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    fi
     source "${SCRIPT_DIR}/colors.sh"
     source "${SCRIPT_DIR}/utils.sh"
 fi

@@ -5,7 +5,9 @@
 
 # Source colors if not already loaded
 if [[ -z "${NORD0}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [[ -z "${SCRIPT_DIR}" ]]; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    fi
     source "${SCRIPT_DIR}/colors.sh"
 fi
 
@@ -129,10 +131,10 @@ log_init() {
 # }
 
 # Format milliseconds as boot-style timestamp [    X.XXX]
-# DISABLED - return nothing (don't echo anything)
-#format_boot_time() {
-#    return 0
-#}
+# DISABLED - return empty string for now
+format_boot_time() {
+    echo ""
+}
 
 # =============================================================================
 # Core Logging Functions
@@ -144,10 +146,9 @@ log_to_file() {
     shift
     local message="$*"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    #local elapsed=$(format_boot_time)
+    local elapsed=$(format_boot_time)
 
-    #local log_line="${timestamp} ${elapsed} [${level}]"
-    local log_line="${timestamp} [${level}]"
+    local log_line="${timestamp} ${elapsed} [${level}]"
     if [[ -n "${CURRENT_MODULE}" ]]; then
         log_line="${log_line} [${CURRENT_MODULE}]"
     fi
@@ -159,8 +160,7 @@ log_to_file() {
 # Log and print INFO level
 log_info() {
     local message="$*"
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -176,8 +176,7 @@ log_info() {
 # Log and print SUCCESS level
 log_success() {
     local message="$*"
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_SUCCESS=$((STATS_SUCCESS + 1))
 
     # Console output
@@ -194,8 +193,7 @@ log_success() {
 # Log and print WARNING level
 log_warn() {
     local message="$*"
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_SKIPPED=$((STATS_SKIPPED + 1))
 
     # Console output
@@ -212,8 +210,7 @@ log_warn() {
 # Log and print ERROR level with visual box
 log_error() {
     local message="$*"
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
     STATS_FAILED=$((STATS_FAILED + 1))
 
     # Console output with error box (inline, fixed width 62 chars)
@@ -242,8 +239,7 @@ log_error() {
 # Log spinner/progress updates (console only, not logged to file to reduce noise)
 log_progress() {
     local message="$*"
-    #local timestamp=$(format_boot_time)
-    local timestamp=""
+    local timestamp=$(format_boot_time)
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then

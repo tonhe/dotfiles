@@ -56,6 +56,10 @@ install() {
     local brewfile="${DOTFILES_HOME}/repo/Brewfile"
     local state_file="${DOTFILES_HOME}/state/brewfile.json"
 
+    log_info "DEBUG: DOTFILES_HOME=${DOTFILES_HOME}"
+    log_info "DEBUG: brewfile=${brewfile}"
+    log_info "DEBUG: Checking if Brewfile exists..."
+
     ensure_brew_path
 
     if [[ ! -f "$brewfile" ]]; then
@@ -63,14 +67,17 @@ install() {
         return 1
     fi
 
-    log_info "Installing packages from Brewfile..."
-    start_spinner "Running brew bundle"
+    log_info "DEBUG: Brewfile found, checking brew command..."
+    log_info "DEBUG: which brew: $(which brew)"
+    log_info "DEBUG: brew --version: $(brew --version | head -1)"
 
-    if brew bundle --file="$brewfile" --no-lock &>/dev/null; then
-        stop_spinner
+    log_info "Installing packages from Brewfile..."
+    log_info "DEBUG: Running: brew bundle --file=$brewfile --no-lock"
+
+    # Run WITHOUT suppressing output so we can see what's happening
+    if brew bundle --file="$brewfile" --no-lock; then
         log_success "Brewfile packages installed"
     else
-        stop_spinner
         log_warn "Some packages may have failed to install"
         log_info "Run 'brew bundle --file=$brewfile' for details"
         return 1

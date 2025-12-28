@@ -10,7 +10,6 @@ tap "homebrew/cask-fonts"
 # -----------------------------------------------------------------------------
 # CLI Tools
 # -----------------------------------------------------------------------------
-brew "chezmoi"          # Dotfiles manager
 brew "git"              # Version control
 brew "neovim"           # Editor
 brew "tmux"             # Terminal multiplexer

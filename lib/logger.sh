@@ -17,8 +17,16 @@ LOG_FILE="${DOTFILES_HOME}/bootstrap.log"
 LOG_MAX_SIZE=$((10 * 1024 * 1024))  # 10MB
 
 # Boot timer - tracks milliseconds since start
-BOOT_START_TIME=""
-BOOT_START_MS=""
+BOOT_START_TIME=$(date +%s)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    if command -v gdate &>/dev/null; then
+        BOOT_START_MS=$(gdate +%s%3N)
+    else
+        BOOT_START_MS=$((BOOT_START_TIME * 1000))
+    fi
+else
+    BOOT_START_MS=$(date +%s%3N)
+fi
 
 # Current module context
 CURRENT_MODULE=""

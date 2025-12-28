@@ -383,7 +383,7 @@ module_install_all() {
 
 module_display_status() {
     local categories=("system" "packages" "applications" "configuration")
-    local width=67
+    local width=67  # Width of ─ characters, total box width = 69 (width + 2 corners)
 
     for category in "${categories[@]}"; do
         local modules=($(module_list_by_category "$category"))
@@ -393,8 +393,10 @@ module_display_status() {
         local category_title=$(echo "$category" | sed 's/\b\(.\)/\u\1/')
         local title_len=${#category_title}
 
+        # Draw borders: ┌ + 67 × ─ + ┐ = 69 chars
+        # Title line: │ + space + title + padding + │ = 69 chars
         echo -e "${SECTION}┌$(printf '─%.0s' $(seq 1 $width))┐${NC}"
-        echo -e "${SECTION}│${NC} ${BRIGHT}${category_title}${NC}$(printf '%*s' $((width - title_len - 2)) '')${SECTION}│${NC}"
+        echo -e "${SECTION}│${NC} ${BRIGHT}${category_title}${NC}$(printf '%*s' $((width - title_len - 1)) '')${SECTION}│${NC}"
         echo -e "${SECTION}├$(printf '─%.0s' $(seq 1 $width))┤${NC}"
 
         local sorted=($(module_sort_by_order "${modules[@]}"))

@@ -147,7 +147,7 @@ log_info() {
 log_success() {
     local message="$*"
     local timestamp=$(format_boot_time)
-    ((STATS_SUCCESS++))
+    STATS_SUCCESS=$((STATS_SUCCESS + 1))
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -164,7 +164,7 @@ log_success() {
 log_warn() {
     local message="$*"
     local timestamp=$(format_boot_time)
-    ((STATS_SKIPPED++))
+    STATS_SKIPPED=$((STATS_SKIPPED + 1))
 
     # Console output
     if [[ -n "${CURRENT_MODULE}" ]]; then
@@ -181,7 +181,7 @@ log_warn() {
 log_error() {
     local message="$*"
     local timestamp=$(format_boot_time)
-    ((STATS_FAILED++))
+    STATS_FAILED=$((STATS_FAILED + 1))
 
     # Console output with error box (inline, fixed width 62 chars)
     if [[ -n "${CURRENT_MODULE}" ]]; then

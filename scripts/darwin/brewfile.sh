@@ -75,6 +75,16 @@ install() {
         # Don't fail - partial installation is acceptable
     fi
 
+    # Mark individual packages that other modules depend on
+    # This allows modules to declare dependencies on brew formulas
+    local -a critical_packages=("git" "neovim" "node" "npm" "tmux" "zsh")
+    for pkg in "${critical_packages[@]}"; do
+        if command -v "$pkg" &>/dev/null; then
+            local version=$("$pkg" --version 2>/dev/null | head -1 || echo "installed")
+            state_mark_installed "$pkg" "$version"
+        fi
+    done
+
     # Save state
     cat > "$state_file" <<EOF
 {

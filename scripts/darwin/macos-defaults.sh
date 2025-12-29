@@ -39,139 +39,233 @@ install() {
     # Start spinner for applying all defaults
     start_spinner "Applying macOS system defaults"
 
-    # GENERAL UI/UX
+    # =============================================================================
+    # General UI/UX
+    # =============================================================================
 
+    # Dark Mode
+    defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
+
+    # Icon size: 16 (very small!)
+    defaults write com.apple.dock tilesize -int 16
+
+    # Magnification: enabled
+    defaults write com.apple.dock magnification -bool true
+
+    # Magnification size: 128 (maximum)
+    defaults write com.apple.dock largesize -int 128
+
+    # Disable the sound effects on boot
     sudo nvram SystemAudioVolume=" " 2>/dev/null || true
 
+    # Expand save panel by default
     defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
     defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+
+    # Expand print panel by default
     defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
     defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
+    # Save to disk (not to iCloud) by default
     defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 
+    # Disable automatic termination of inactive apps
     defaults write NSGlobalDomain NSDisableAutomaticTermination -bool true
 
+    # Disable automatic capitalization
     defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+
+    # Disable smart dashes
     defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+
+    # Disable automatic period substitution
     defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+
+    # Disable smart quotes
     defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+
+    # Disable auto-correct
     defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
+    # Disable sharing focus across devices
+    defaults write com.apple.coreservices.useractivityd ActivityAdvertisingAllowed -bool false
+    defaults write com.apple.coreservices.useractivityd ActivityReceivingAllowed -bool false
 
+    # =============================================================================
+    # Trackpad, Mouse, Keyboard
+    # =============================================================================
+
+    # Trackpad: enable tap to click
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
+    # Enable full keyboard access for all controls (Tab in dialogs)
     defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
+    # Set a fast keyboard repeat rate
     defaults write NSGlobalDomain KeyRepeat -int 2
     defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+    # Disable press-and-hold for keys in favor of key repeat
     defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
+    # Enable two-finger tap/click for right-click
+    defaults write com.apple.AppleMultitouchTrackpad TrackpadRightClick -bool true
+    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
 
+    # =============================================================================
+    # Finder
+    # =============================================================================
+
+    # Show hidden files by default
     defaults write com.apple.finder AppleShowAllFiles -bool true
 
+    # Show all filename extensions
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
+    # Show status bar
     defaults write com.apple.finder ShowStatusBar -bool true
+
+    # Show path bar
     defaults write com.apple.finder ShowPathbar -bool true
 
+    # Keep folders on top when sorting by name
     defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
+    # When performing a search, search the current folder by default
     defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 
+    # Disable warning when changing a file extension
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
 
+    # Enable spring loading for directories
     defaults write NSGlobalDomain com.apple.springing.enabled -bool true
     defaults write NSGlobalDomain com.apple.springing.delay -float 0
 
+    # Avoid creating .DS_Store files on network or USB volumes
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
+    # Use list view in all Finder windows by default
     defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
+    # Disable disk image verification
     defaults write com.apple.frameworks.diskimages skip-verify -bool true
     defaults write com.apple.frameworks.diskimages skip-verify-locked -bool true
     defaults write com.apple.frameworks.diskimages skip-verify-remote -bool true
 
+    # Automatically open a new Finder window when a volume is mounted
     defaults write com.apple.frameworks.diskimages auto-open-ro-root -bool true
     defaults write com.apple.frameworks.diskimages auto-open-rw-root -bool true
     defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true
 
+    # Show item info near icons on the desktop and in other icon views
     /usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:showItemInfo true" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:showItemInfo true" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:showItemInfo true" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
 
+    # Snap-to-grid for icons on the desktop and in other icon views
     /usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
 
+    # Increase grid spacing for icons on the desktop and in other icon views
     /usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:gridSpacing 100" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:gridSpacing 100" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:gridSpacing 100" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
 
+    # Increase the size of icons on the desktop and in other icon views
     /usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:iconSize 80" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:iconSize 80" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:iconSize 80" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null || true
 
+    # Show the ~/Library folder
     chflags nohidden ~/Library 2>/dev/null || true
 
+    # Show the /Volumes folder
     sudo chflags nohidden /Volumes 2>/dev/null || true
 
+    # =============================================================================
+    # Dock
+    # =============================================================================
 
+    # Set the icon size of Dock items
     defaults write com.apple.dock tilesize -int 36
 
+    # Change minimize/maximize window effect
     defaults write com.apple.dock mineffect -string "scale"
 
+    # Minimize windows into their application's icon
     defaults write com.apple.dock minimize-to-application -bool true
 
+    # Show indicator lights for open applications
     defaults write com.apple.dock show-process-indicators -bool true
 
+    # Disable Dashboard
     defaults write com.apple.dashboard mcx-disabled -bool true
 
+    # Don't show Dashboard as a Space
     defaults write com.apple.dock dashboard-in-overlay -bool true
 
+    # Remove the auto-hiding Dock delay
     defaults write com.apple.dock autohide-delay -float 0
 
+    # Speed up the animation when hiding/showing the Dock
     defaults write com.apple.dock autohide-time-modifier -float 0
 
-    defaults write com.apple.dock autohide -bool true
+    # Auto-hide the Dock
+    #defaults write com.apple.dock autohide -bool true
 
+    # Make Dock icons of hidden applications translucent
     defaults write com.apple.dock showhidden -bool true
 
+    # Don't show recent applications in Dock
     defaults write com.apple.dock show-recents -bool false
 
+    # =============================================================================
+    # Safari & WebKit
+    # =============================================================================
 
+    # Enable Safari's debug menu
     defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
 
+    # Enable the Develop menu and Web Inspector
     defaults write com.apple.Safari IncludeDevelopMenu -bool true
     defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
     defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
 
+    # Add a context menu item for showing the Web Inspector in web views
     defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
 
+    # Disable AutoFill
     defaults write com.apple.Safari AutoFillFromAddressBook -bool false
     defaults write com.apple.Safari AutoFillPasswords -bool false
     defaults write com.apple.Safari AutoFillCreditCardData -bool false
     defaults write com.apple.Safari AutoFillMiscellaneousForms -bool false
 
+    # Enable "Do Not Track"
     defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
 
+    # Update extensions automatically
     defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 
+    # =============================================================================
+    # Spotlight
+    # =============================================================================
 
+    # Disable Spotlight indexing for any volume that gets mounted
     sudo defaults write /.Spotlight-V100/VolumeConfiguration Exclusions -array "/Volumes" 2>/dev/null || true
 
+    # Change indexing order and disable some search results
     defaults write com.apple.spotlight orderedItems -array \
         '{"enabled" = 1;"name" = "APPLICATIONS";}' \
-        '{"enabled" = 1;"name" = "SYSTEM_PREFS";}' \
-        '{"enabled" = 1;"name" = "DIRECTORIES";}' \
-        '{"enabled" = 1;"name" = "PDF";}' \
-        '{"enabled" = 1;"name" = "FONTS";}' \
+        '{"enabled" = 0;"name" = "SYSTEM_PREFS";}' \
+        '{"enabled" = 0;"name" = "DIRECTORIES";}' \
+        '{"enabled" = 0;"name" = "PDF";}' \
+        '{"enabled" = 0;"name" = "FONTS";}' \
         '{"enabled" = 0;"name" = "DOCUMENTS";}' \
         '{"enabled" = 0;"name" = "MESSAGES";}' \
-        '{"enabled" = 0;"name" = "CONTACT";}' \
+        '{"enabled" = 1;"name" = "CONTACT";}' \
         '{"enabled" = 0;"name" = "EVENT_TODO";}' \
         '{"enabled" = 0;"name" = "IMAGES";}' \
         '{"enabled" = 0;"name" = "BOOKMARKS";}' \
@@ -187,44 +281,79 @@ install() {
         '{"enabled" = 0;"name" = "MENU_WEBSEARCH";}' \
         '{"enabled" = 0;"name" = "MENU_SPOTLIGHT_SUGGESTIONS";}'
 
-    # Loading new settings
+    # Load new settings by restarting Spotlight
     killall mds 2>/dev/null || true
     sudo mdutil -i on / 2>/dev/null || true
     sudo mdutil -E / 2>/dev/null || true
 
+    # =============================================================================
+    # Activity Monitor
+    # =============================================================================
 
+    # Show the main window when launching
     defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
 
+    # Visualize CPU usage in the Dock icon
     defaults write com.apple.ActivityMonitor IconType -int 5
 
+    # Show all processes
     defaults write com.apple.ActivityMonitor ShowCategory -int 0
 
+    # Sort by CPU usage
     defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
     defaults write com.apple.ActivityMonitor SortDirection -int 0
 
+    # =============================================================================
+    # Terminal
+    # =============================================================================
 
+    # Enable Secure Keyboard Entry in Terminal.app
     defaults write com.apple.terminal SecureKeyboardEntry -bool true
 
+    # Disable line marks
     defaults write com.apple.Terminal ShowLineMarks -int 0
 
+    # Only use UTF-8 in Terminal.app
+    defaults write com.apple.terminal StringEncodings -array 4
 
+
+    # =============================================================================
+    # Time Machine
+    # =============================================================================
+
+    # Prevent Time Machine from prompting to use new hard drives as backup volume
     defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
+    # =============================================================================
+    # TextEdit
+    # =============================================================================
 
+    # Use plain text mode for new TextEdit documents
     defaults write com.apple.TextEdit RichText -int 0
 
+    # Open and save files as UTF-8 in TextEdit
     defaults write com.apple.TextEdit PlainTextEncoding -int 4
     defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
 
+    # =============================================================================
+    # Screenshots
+    # =============================================================================
 
+    # Save screenshots to dedicated folder
     mkdir -p "${HOME}/Pictures/Screenshots"
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/Screenshots"
 
+    # Save screenshots in PNG format
     defaults write com.apple.screencapture type -string "png"
 
+    # Disable shadow in screenshots
     defaults write com.apple.screencapture disable-shadow -bool true
 
+    # =============================================================================
+    # Convenience Symlinks
+    # =============================================================================
 
+    # Create symlink to iCloud Drive for easier access
     if [[ ! -L "$HOME/iCloudDrive" ]] && [[ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs" ]]; then
         ln -s "$HOME/Library/Mobile Documents/com~apple~CloudDocs" "$HOME/iCloudDrive"
     fi

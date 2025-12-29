@@ -50,11 +50,13 @@ install() {
     fi
 
     # Run installer (suppress output)
-    log_info "Running Homebrew installer (this may take several minutes)..."
+    start_spinner "Running Homebrew installer (this may take several minutes)"
     if ! NONINTERACTIVE=1 /bin/bash -c "$install_script" </dev/null >/dev/null 2>&1; then
+        stop_spinner
         log_error "Homebrew installation failed"
         return 1
     fi
+    stop_spinner
 
     # Determine brew path and add to PATH for current session
     local brew_path=""

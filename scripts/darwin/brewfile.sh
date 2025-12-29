@@ -71,6 +71,10 @@ install() {
     local current=0
     local current_package=""
 
+    # Refresh sudo timestamp silently (uses parent's authentication)
+    # This prevents tmux and other packages from prompting during installation
+    sudo -n -v 2>/dev/null || true
+
     # Use process substitution to avoid subshell and capture exit code
     # Temporarily disable exit on error for brew bundle
     set +e
@@ -141,6 +145,9 @@ reconfigure() {
     # Update with progress bar
     local current=0
     local current_package=""
+
+    # Refresh sudo timestamp silently (uses parent's authentication)
+    sudo -n -v 2>/dev/null || true
 
     # Use process substitution to avoid subshell and capture exit code
     set +e

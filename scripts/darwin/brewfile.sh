@@ -73,7 +73,7 @@ install() {
 
     # Refresh sudo timestamp silently (uses parent's authentication)
     # This prevents tmux and other packages from prompting during installation
-    sudo -n -v 2>/dev/null || true
+    { sudo -n -v; } >/dev/null 2>&1 || true
 
     # Use process substitution to avoid subshell and capture exit code
     # Temporarily disable exit on error for brew bundle
@@ -88,9 +88,9 @@ install() {
             current=$((current + 1))
             progress_bar $current $total "Installing: $current_package"
 
-            # Refresh sudo every 10 packages to keep timestamp fresh
+            # Refresh sudo every 10 packages to keep timestamp fresh (suppress all output)
             if (( current % 10 == 0 )); then
-                sudo -n -v 2>/dev/null || true
+                { sudo -n -v; } >/dev/null 2>&1 || true
             fi
         fi
     done < <(brew bundle --file="$brewfile" 2>&1)
@@ -155,7 +155,7 @@ reconfigure() {
     local current_package=""
 
     # Refresh sudo timestamp silently (uses parent's authentication)
-    sudo -n -v 2>/dev/null || true
+    { sudo -n -v; } >/dev/null 2>&1 || true
 
     # Use process substitution to avoid subshell and capture exit code
     set +e
@@ -169,9 +169,9 @@ reconfigure() {
             current=$((current + 1))
             progress_bar $current $total "Updating: $current_package"
 
-            # Refresh sudo every 10 packages to keep timestamp fresh
+            # Refresh sudo every 10 packages to keep timestamp fresh (suppress all output)
             if (( current % 10 == 0 )); then
-                sudo -n -v 2>/dev/null || true
+                { sudo -n -v; } >/dev/null 2>&1 || true
             fi
         fi
     done < <(brew bundle --file="$brewfile" 2>&1)

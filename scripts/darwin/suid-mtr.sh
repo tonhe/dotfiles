@@ -16,8 +16,14 @@ get_version() { is_installed && echo "configured" || echo "not configured"; }
 install() {
     log_info "Configuring mtr permissions..."
 
-    # Refresh sudo timestamp silently (uses parent's authentication)
-    sudo -n -v 2>/dev/null || true
+    # Check if sudo is available, request if needed
+    if ! sudo -n -v >/dev/null 2>&1; then
+        log_info "Administrator privileges required to set suid bit on mtr-packet"
+        if ! sudo -v; then
+            log_error "Failed to obtain sudo privileges"
+            return 1
+        fi
+    fi
 
     local mtr_path=""
     if [[ $(uname -m) == "arm64" ]]; then
@@ -32,8 +38,8 @@ install() {
     fi
 
     log_info "Setting setuid bit on mtr-packet..."
-    sudo chown root:wheel "$mtr_path"
-    sudo chmod u+s "$mtr_path"
+    sudo chown root:wheel "$mtr_path" 2>/dev/null
+    sudo chmod u+s "$mtr_path" 2>/dev/null
     
     log_success "mtr configured to run without sudo"
     return 0

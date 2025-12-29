@@ -127,8 +127,8 @@ progress_bar() {
     # Get timestamp
     local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
 
-    # Print with percentage
-    printf "\r${DIM}${timestamp}${NC} ${PROGRESS}[%s]${NC} ${BRIGHT}%3d%%${NC} ${DIM}%s${NC}" "$bar" "$percentage" "$message"
+    # Clear the line first, then print with percentage
+    printf "\r\033[K${DIM}${timestamp}${NC} ${PROGRESS}[%s]${NC} ${BRIGHT}%3d%%${NC} ${DIM}%s${NC}" "$bar" "$percentage" "$message"
 
     # New line if complete
     if [ "$current" -eq "$total" ]; then

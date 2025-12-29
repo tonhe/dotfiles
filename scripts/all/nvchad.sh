@@ -17,7 +17,9 @@ MODULE_CATEGORY="configuration"
 # =============================================================================
 
 is_installed() {
-    [[ -f "$HOME/.config/nvim/init.lua" ]]
+    # NvChad is installed if init.lua exists AND it's a git repository
+    # (not just the lua/ directory from dotfiles)
+    [[ -f "$HOME/.config/nvim/init.lua" ]] && [[ -d "$HOME/.config/nvim/.git" ]]
 }
 
 get_version() {

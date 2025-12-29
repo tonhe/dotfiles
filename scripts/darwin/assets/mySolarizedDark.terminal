@@ -66,6 +66,8 @@
 	ZWN0CBEaJCkyN0lMUVNXXWRqd36eoKKnsrvDxgAAAAAAAAEBAAAAAAAAABkAAAAAAAAA
 	AAAAAAAAAADP
 	</data>
+	<key>ShouldRestoreContent</key>
+	<false/>
 	<key>ShowWindowSettingsNameInTitle</key>
 	<false/>
 	<key>TextBoldColor</key>
@@ -123,7 +125,7 @@
 	<key>rowCount</key>
 	<integer>30</integer>
 	<key>shellExitAction</key>
-	<integer>2</integer>
+	<integer>1</integer>
 	<key>type</key>
 	<string>Window Settings</string>
 </dict>

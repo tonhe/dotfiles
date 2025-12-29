@@ -41,16 +41,16 @@ install() {
         return 1
     fi
 
-    # Get user information from state
-    local name=$(state_get_user_config "name")
-    local email=$(state_get_user_config "email")
-    local github_username=$(state_get_user_config "github_username")
-    local machine_type=$(state_get_user_config "machine_type")
+    # Get user information from user.conf
+    local name=$(user_config_get "USER_FULL_NAME")
+    local email=$(user_config_get "USER_EMAIL")
+    local github_username=$(user_config_get "GITHUB_USERNAME")
+    local machine_type=$(user_config_get "MACHINE_TYPE")
 
     # Validate required fields
     if [[ -z "$name" ]] || [[ -z "$email" ]]; then
         log_error "Missing required user information (name or email)"
-        log_info "Run bootstrap to configure user information"
+        log_info "User config is stored in ${DOTFILES_HOME}/user.conf"
         return 1
     fi
 

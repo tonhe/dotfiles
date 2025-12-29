@@ -283,6 +283,10 @@ run_first_time_setup() {
     # Update metadata to mark first run as complete
     state_update_metadata
 
+    # Show final installation status
+    echo ""
+    module_display_status
+
     # Next steps
     show_next_steps
 }
@@ -310,16 +314,16 @@ run_maintenance_mode() {
 
         case "$choice" in
             1)
-                handle_refresh_all
-                ;;
-            2)
-                handle_update_packages
-                ;;
-            3)
                 handle_install_module
                 ;;
-            4)
+            2)
                 handle_uninstall_module
+                ;;
+            3)
+                handle_update_packages
+                ;;
+            4)
+                handle_update_repo
                 ;;
             5)
                 handle_show_status
@@ -327,7 +331,7 @@ run_maintenance_mode() {
             6)
                 handle_show_logs
                 ;;
-            7)
+            0)
                 log_info "Exiting..."
                 break
                 ;;
@@ -360,27 +364,13 @@ display_maintenance_menu() {
 }
 
 # Maintenance handlers
-handle_refresh_all() {
-    log_section "REFRESH ALL"
+handle_update_repo() {
+    log_section "UPDATE REPOSITORY"
 
     log_info "Pulling latest dotfiles..."
     bootstrap_clone_repo
 
-    log_info "Reconfiguring all installed modules..."
-
-    local all_modules=($(state_list_installed))
-
-    for module in "${all_modules[@]}"; do
-        log_module_start "$module"
-        if module_exec "$module" "reconfigure"; then
-            log_success "$(module_get_name "$module") reconfigured"
-        else
-            log_error "$(module_get_name "$module") reconfiguration failed"
-        fi
-        log_module_end
-    done
-
-    log_success "Refresh complete"
+    log_success "Repository updated"
 }
 
 handle_update_packages() {
@@ -404,7 +394,16 @@ handle_update_packages() {
 handle_install_module() {
     log_section "INSTALL MODULE"
 
-    local all_modules=($(module_list_all))
+    # Get all modules except brewfile
+    local all_modules=()
+    for module in $(module_list_all); do
+        if [[ "$module" != "brewfile" ]]; then
+            all_modules+=("$module")
+        fi
+    done
+
+    # Sort by MODULE_ORDER
+    local sorted_modules=($(module_sort_by_order "${all_modules[@]}"))
 
     echo ""
     echo -e "${TEXT}Available modules:${NC}"
@@ -412,7 +411,7 @@ handle_install_module() {
 
     local i=1
     local -a menu_modules=()
-    for module in "${all_modules[@]}"; do
+    for module in "${sorted_modules[@]}"; do
         local name=$(module_get_name "$module")
         local status="not installed"
 
@@ -426,8 +425,13 @@ handle_install_module() {
     done
 
     echo ""
-    echo -ne "${DIM}Choice [1-${#menu_modules[@]}]:${NC} "
+    echo -ne "${DIM}Choice [1-${#menu_modules[@]}] or [0] to cancel:${NC} "
     read -r choice
+
+    if [[ "$choice" == "0" ]]; then
+        log_info "Cancelled"
+        return 0
+    fi
 
     if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#menu_modules[@]} ]]; then
         local selected_module="${menu_modules[$((choice - 1))]}"
@@ -461,30 +465,46 @@ handle_install_module() {
 handle_uninstall_module() {
     log_section "UNINSTALL MODULE"
 
-    local installed_modules=($(state_list_installed))
+    # Get installed modules except brewfile
+    local installed_modules=()
+    for module in $(state_list_installed); do
+        if [[ "$module" != "brewfile" ]]; then
+            installed_modules+=("$module")
+        fi
+    done
 
     if [[ ${#installed_modules[@]} -eq 0 ]]; then
         log_warn "No installed modules found"
         return 1
     fi
 
+    # Sort by MODULE_ORDER
+    local sorted_modules=($(module_sort_by_order "${installed_modules[@]}"))
+
     echo ""
     echo -e "${TEXT}Installed modules:${NC}"
     echo ""
 
     local i=1
-    for module in "${installed_modules[@]}"; do
+    local -a menu_modules=()
+    for module in "${sorted_modules[@]}"; do
         local name=$(module_get_name "$module")
         echo -e "  ${INFO}[${i}]${NC} ${TEXT}${name}${NC}"
+        menu_modules+=("$module")
         ((i++))
     done
 
     echo ""
-    echo -ne "${DIM}Module to uninstall [1-${#installed_modules[@]}]:${NC} "
+    echo -ne "${DIM}Module to uninstall [1-${#menu_modules[@]}] or [0] to cancel:${NC} "
     read -r choice
 
-    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#installed_modules[@]} ]]; then
-        local selected_module="${installed_modules[$((choice - 1))]}"
+    if [[ "$choice" == "0" ]]; then
+        log_info "Cancelled"
+        return 0
+    fi
+
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le ${#menu_modules[@]} ]]; then
+        local selected_module="${menu_modules[$((choice - 1))]}"
         local module_name=$(module_get_name "$selected_module")
 
         echo ""
@@ -553,7 +573,8 @@ show_next_steps() {
     echo -e "     ${INFO}nvim${NC}"
     echo -e "     ${DIM}Then run: ${INFO}:MasonInstallAll${NC}"
     echo ""
-    echo -e "${DIM}Optional:${NC}"
+    echo -e "${DIM}[ OPTIONAL ]$(printf '%.0s─' {1..60})${NC}"
+    echo ""
     echo -e "  ${DIM}•${NC} Run bootstrap again to enter maintenance mode:"
     echo -e "    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}"
     echo ""

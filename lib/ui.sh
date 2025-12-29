@@ -310,15 +310,15 @@ display_maintenance_menu() {
     draw_header "MAINTENANCE MODE" "${SECTION}"
     echo -e "${TEXT}What would you like to do?${NC}"
     echo ""
-    echo -e "  ${INFO}[1]${NC} ${TEXT}Refresh all (pull latest + reconfigure all modules)${NC}"
-    echo -e "  ${INFO}[2]${NC} ${TEXT}Update packages (Brewfile)${NC}"
-    echo -e "  ${INFO}[3]${NC} ${TEXT}Install module${NC}"
-    echo -e "  ${INFO}[4]${NC} ${TEXT}Uninstall module${NC}"
+    echo -e "  ${INFO}[1]${NC} ${TEXT}Install module${NC}"
+    echo -e "  ${INFO}[2]${NC} ${TEXT}Uninstall module${NC}"
+    echo -e "  ${INFO}[3]${NC} ${TEXT}Update Homebrew packages${NC}"
+    echo -e "  ${INFO}[4]${NC} ${TEXT}Update dotfiles repository${NC}"
     echo -e "  ${INFO}[5]${NC} ${TEXT}Show installation status${NC}"
     echo -e "  ${INFO}[6]${NC} ${TEXT}View logs${NC}"
-    echo -e "  ${INFO}[7]${NC} ${TEXT}Exit${NC}"
+    echo -e "  ${INFO}[0]${NC} ${TEXT}Exit${NC}"
     echo ""
-    echo -ne "${DIM}Choice [1-7]:${NC} "
+    echo -ne "${DIM}Choice [0-6]:${NC} "
 }
 
 # =============================================================================

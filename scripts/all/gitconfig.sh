@@ -66,9 +66,9 @@ install() {
 
     # Read template and substitute variables
     sed \
-        -e "s|{{ .name | quote }}|\"${name}\"|g" \
-        -e "s|{{ .email | quote }}|\"${email}\"|g" \
-        -e "s|{{ .github_username | quote }}|\"${github_username}\"|g" \
+        -e "s|{{ .name \| quote }}|\"${name}\"|g" \
+        -e "s|{{ .email \| quote }}|\"${email}\"|g" \
+        -e "s|{{ .github_username \| quote }}|\"${github_username}\"|g" \
         "$TEMPLATE_FILE" > "$temp_file"
 
     # Handle conditional work-specific config

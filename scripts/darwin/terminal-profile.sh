@@ -10,7 +10,13 @@ is_installed() {
     defaults read com.apple.Terminal "Default Window Settings" 2>/dev/null | grep -q "mySolarizedDark"
 }
 
-get_version() { is_installed && echo "installed" || echo "not installed"; }
+get_version() {
+    if is_installed; then
+        echo "configured"
+    else
+        echo "not configured"
+    fi
+}
 
 install() {
     log_info "Importing Terminal profile..."
@@ -23,11 +29,10 @@ install() {
         log_error "Terminal profile not found at ${profile_path}"
         return 1
     fi
-    
-    log_info "Importing profile from ${profile_path}..."
+
     open "$profile_path"
     sleep 2
-    
+
     log_info "Setting as default profile..."
     defaults write com.apple.Terminal "Default Window Settings" -string "$profile_name"
     defaults write com.apple.Terminal "Startup Window Settings" -string "$profile_name"

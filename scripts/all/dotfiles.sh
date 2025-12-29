@@ -20,9 +20,9 @@ STATE_FILE="${DOTFILES_HOME}/state/dotfiles.json"
 # Helper Functions
 # =============================================================================
 
-# Get list of all dot_ files/dirs (excluding dot_config which is special)
+# Get list of all dot_ files/dirs (excluding dot_config and examples)
 get_dot_files() {
-    find "$DOTFILES_SOURCE/" -maxdepth 1 -name "dot_*" ! -name "dot_config" -type f 2>/dev/null
+    find "$DOTFILES_SOURCE/" -maxdepth 1 -name "dot_*" ! -name "dot_config" ! -name "*.example" -type f 2>/dev/null
 }
 
 # Convert dot_ filename to actual dotfile name
@@ -48,14 +48,13 @@ needs_update() {
     [[ "$src_hash" != "$dest_hash" ]]
 }
 
-# Backup existing file
+# Backup existing file (silent)
 backup_file() {
     local file="$1"
 
     if [[ -f "$file" ]] || [[ -d "$file" ]]; then
         local backup="${file}.backup-$(date +%Y%m%d-%H%M%S)"
-        log_info "Backing up existing file to ${backup}"
-        cp -a "$file" "$backup"
+        cp -a "$file" "$backup" 2>/dev/null
     fi
 }
 
@@ -83,28 +82,28 @@ install() {
     local files_skipped=0
 
     # Copy dot_ files (dot_zshrc -> ~/.zshrc, etc.)
-    log_info "Processing root-level dotfiles..."
+    local dot_files=($(get_dot_files))
+    local total_dotfiles=${#dot_files[@]}
+    local current=0
 
-    for src_file in $(get_dot_files); do
+    for src_file in "${dot_files[@]}"; do
         local dest_name=$(convert_name "$src_file")
         local dest_file="${HOME}/${dest_name}"
 
+        ((current++))
+        progress_bar $current $total_dotfiles "Copying: $(basename "$src_file")"
+
         if needs_update "$src_file" "$dest_file"; then
-            backup_file "$dest_file"
-            log_info "Copying $(basename "$src_file") -> ${dest_name}"
+            backup_file "$dest_file" 2>/dev/null
             cp "$src_file" "$dest_file"
-            log_success "$(basename "$src_file") -> ${dest_name}"
             ((files_copied++))
         else
-            log_progress "$(basename "$src_file") (unchanged)"
             ((files_skipped++))
         fi
     done
 
     # Copy dot_config directory -> ~/.config/
     if [[ -d "${DOTFILES_SOURCE}/dot_config" ]]; then
-        log_info "Processing .config directory..."
-
         ensure_dir "${HOME}/.config"
 
         # Copy each subdirectory
@@ -113,14 +112,8 @@ install() {
                 local dir_name=$(basename "$config_dir")
                 local dest_dir="${HOME}/.config/${dir_name}"
 
-                log_info "Syncing .config/${dir_name}..."
-
-                # Backup if exists
-                backup_file "$dest_dir"
-
-                # Copy directory
+                backup_file "$dest_dir" 2>/dev/null
                 cp -R "$config_dir" "$dest_dir"
-                log_success ".config/${dir_name} synced"
                 ((files_copied++))
             fi
         done
@@ -132,9 +125,8 @@ install() {
                 local dest_file="${HOME}/.config/${file_name}"
 
                 if needs_update "$config_file" "$dest_file"; then
-                    backup_file "$dest_file"
+                    backup_file "$dest_file" 2>/dev/null
                     cp "$config_file" "$dest_file"
-                    log_success ".config/${file_name} copied"
                     ((files_copied++))
                 fi
             fi
@@ -143,53 +135,49 @@ install() {
 
     # Copy private_bin directory -> ~/bin/
     if [[ -d "${DOTFILES_SOURCE}/private_bin" ]]; then
-        log_info "Processing bin directory..."
-
         ensure_dir "${HOME}/bin"
+
+        # Count total bin files for progress
+        local bin_items=($(find "${DOTFILES_SOURCE}/private_bin" -maxdepth 1 -type f -o -type d ! -path "${DOTFILES_SOURCE}/private_bin"))
+        local total_bin=${#bin_items[@]}
+        local bin_current=0
 
         # Copy all scripts and make them executable
         for bin_file in "${DOTFILES_SOURCE}"/private_bin/*; do
+            ((bin_current++))
+
             if [[ -f "$bin_file" ]]; then
                 local file_name=$(basename "$bin_file")
                 local dest_file="${HOME}/bin/${file_name}"
 
+                progress_bar $bin_current $total_bin "Installing: bin/${file_name}"
+
                 if needs_update "$bin_file" "$dest_file"; then
-                    backup_file "$dest_file"
+                    backup_file "$dest_file" 2>/dev/null
                     cp "$bin_file" "$dest_file"
                     chmod +x "$dest_file"
-                    log_success "bin/${file_name} (executable)"
                     ((files_copied++))
                 else
                     ((files_skipped++))
                 fi
-            fi
-        done
-
-        # Copy directories in private_bin
-        for bin_dir in "${DOTFILES_SOURCE}"/private_bin/*; do
-            if [[ -d "$bin_dir" ]]; then
-                local dir_name=$(basename "$bin_dir")
+            elif [[ -d "$bin_file" ]]; then
+                local dir_name=$(basename "$bin_file")
                 local dest_dir="${HOME}/bin/${dir_name}"
 
-                backup_file "$dest_dir"
-                cp -R "$bin_dir" "$dest_dir"
+                progress_bar $bin_current $total_bin "Installing: bin/${dir_name}/"
+
+                backup_file "$dest_dir" 2>/dev/null
+                cp -R "$bin_file" "$dest_dir"
 
                 # Make scripts in subdirectory executable
-                find "$dest_dir" -type f -exec chmod +x {} \;
+                find "$dest_dir" -type f -exec chmod +x {} \; 2>/dev/null
 
-                log_success "bin/${dir_name}/ (directory)"
                 ((files_copied++))
             fi
         done
     fi
 
-    # Handle dot_gitconfig.tmpl if it exists (template processing)
-    if [[ -f "${DOTFILES_SOURCE}/dot_gitconfig.tmpl.example" ]]; then
-        if [[ ! -f "${HOME}/.gitconfig" ]]; then
-            log_warn ".gitconfig template found but not auto-applied"
-            log_info "User config will be created separately if needed"
-        fi
-    fi
+    # Note: .gitconfig is generated separately via bootstrap user config
 
     # Save state
     cat > "$STATE_FILE" <<EOF

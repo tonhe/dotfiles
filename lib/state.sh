@@ -350,8 +350,10 @@ user_config_prompt() {
     read -p "  GitHub username [$current_github]: " github_user < /dev/tty || return 1
     github_user=${github_user:-$current_github}
 
-    read -p "  Machine type (personal/work) [$current_machine]: " machine_type < /dev/tty || return 1
-    machine_type=${machine_type:-$current_machine}
+    # Default to "personal" if no current value
+    local default_machine="${current_machine:-personal}"
+    read -p "  Machine type (personal/work) [$default_machine]: " machine_type < /dev/tty || return 1
+    machine_type=${machine_type:-$default_machine}
 
     # Save values
     user_config_set "USER_FULL_NAME" "$user_name" || return 1

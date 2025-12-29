@@ -217,19 +217,15 @@ run_first_time_setup() {
     if [[ "$DRY_RUN" == false ]]; then
         log_section "SYSTEM ACCESS"
         log_info "Some operations require administrator privileges"
-        log_info "DEBUG: About to call request_sudo..."
         if ! request_sudo; then
             log_error "Failed to obtain administrator privileges"
             return 1
         fi
-        log_info "DEBUG: request_sudo returned successfully"
         log_success "Administrator access granted"
     fi
 
-    log_info "DEBUG: Checking user config..."
     # Check if user config is needed
     if ! user_config_is_complete; then
-        log_info "DEBUG: User config incomplete, prompting..."
         log_section "USER CONFIGURATION"
         if [[ "$NON_INTERACTIVE" == true ]]; then
             log_warn "Non-interactive mode: using default user configuration"
@@ -238,11 +234,8 @@ run_first_time_setup() {
                 log_warn "User configuration prompt failed, continuing with existing config..."
             fi
         fi
-    else
-        log_info "DEBUG: User config already complete"
     fi
 
-    log_info "DEBUG: Sorting modules..."
     # Sort modules by execution order
     local sorted_modules=($(module_sort_by_order "${all_modules[@]}"))
     if [[ -z "${sorted_modules[*]}" ]]; then
@@ -250,7 +243,6 @@ run_first_time_setup() {
         return 1
     fi
 
-    log_info "DEBUG: Starting module installation..."
     # Install all modules
     log_section "MODULE INSTALLATION"
 

@@ -67,9 +67,6 @@ install() {
     local total=$(grep -E "^(brew|cask|mas) " "$brewfile" | wc -l | tr -d ' ')
     log_info "Installing ${total} packages from Brewfile..."
 
-    # Refresh sudo timestamp before running brew bundle
-    sudo -v
-
     # Install with progress bar
     local current=0
     local current_package=""
@@ -84,7 +81,7 @@ install() {
             current=$((current + 1))
             progress_bar $current $total "Installing: $current_package"
         fi
-    done < <(SUDO_ASKPASS="" brew bundle --file="$brewfile" 2>&1)
+    done < <(brew bundle --file="$brewfile" 2>&1)
 
     local brew_exit_code=$?
     set -e
@@ -141,9 +138,6 @@ reconfigure() {
     local total=$(grep -E "^(brew|cask|mas) " "$brewfile" | wc -l | tr -d ' ')
     log_info "Updating ${total} packages from Brewfile..."
 
-    # Refresh sudo timestamp before running brew bundle
-    sudo -v
-
     # Update with progress bar
     local current=0
     local current_package=""
@@ -157,7 +151,7 @@ reconfigure() {
             current=$((current + 1))
             progress_bar $current $total "Updating: $current_package"
         fi
-    done < <(SUDO_ASKPASS="" brew bundle --file="$brewfile" 2>&1)
+    done < <(brew bundle --file="$brewfile" 2>&1)
 
     local brew_exit_code=$?
     set -e

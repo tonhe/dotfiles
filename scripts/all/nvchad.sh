@@ -9,7 +9,7 @@
 MODULE_NAME="NvChad"
 MODULE_DESC="Neovim configuration and plugins"
 MODULE_DEPS=("brewfile")
-MODULE_ORDER=35
+MODULE_ORDER=65
 MODULE_CATEGORY="configuration"
 
 # =============================================================================

@@ -49,9 +49,9 @@ install() {
         return 1
     fi
 
-    # Run installer
+    # Run installer (suppress output)
     log_info "Running Homebrew installer (this may take several minutes)..."
-    if ! /bin/bash -c "$install_script" </dev/null; then
+    if ! NONINTERACTIVE=1 /bin/bash -c "$install_script" </dev/null >/dev/null 2>&1; then
         log_error "Homebrew installation failed"
         return 1
     fi

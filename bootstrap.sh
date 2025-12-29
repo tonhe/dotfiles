@@ -183,8 +183,7 @@ run_first_time_setup() {
     print_banner
 
     if [[ "$DRY_RUN" == true ]]; then
-        draw_box "⚠  DRY RUN MODE - NO CHANGES WILL BE MADE  ⚠" 71 "$WARN"
-        echo ""
+        draw_header "⚠  DRY RUN MODE - NO CHANGES WILL BE MADE  ⚠" "$WARN"
     fi
 
     log_section "FIRST TIME SETUP"
@@ -541,20 +540,25 @@ handle_show_logs() {
 
 show_next_steps() {
     echo ""
-    echo -e "${SECTION}┌───────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}Next Steps${NC}                                                        ${SECTION}│${NC}"
-    echo -e "${SECTION}├───────────────────────────────────────────────────────────────────┤${NC}"
-    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}1.${NC} Restart your terminal or run:                                ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}source ~/.zshrc${NC}                                                ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}2.${NC} Run bootstrap again to enter maintenance mode:                  ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}                         ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}3.${NC} View the log:                                                 ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}                                 ${SECTION}│${NC}"
-    echo -e "${SECTION}│${NC}                                                                   ${SECTION}│${NC}"
-    echo -e "${SECTION}└───────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${SECTION}[ ${BRIGHT}NEXT STEPS${NC}${SECTION} ]$(printf '%.0s─' {1..55})${NC}"
+    echo ""
+    echo -e "  ${BRIGHT}1.${NC} Restart your terminal or run:"
+    echo -e "     ${INFO}source ~/.zshrc${NC}"
+    echo ""
+    echo -e "  ${BRIGHT}2.${NC} Open Neovim to install base plugins:"
+    echo -e "     ${INFO}nvim${NC}"
+    echo -e "     ${DIM}(Plugins will auto-install on first launch)${NC}"
+    echo ""
+    echo -e "  ${BRIGHT}3.${NC} Reopen Neovim and install language servers:"
+    echo -e "     ${INFO}nvim${NC}"
+    echo -e "     ${DIM}Then run: ${INFO}:MasonInstallAll${NC}"
+    echo ""
+    echo -e "${DIM}Optional:${NC}"
+    echo -e "  ${DIM}•${NC} Run bootstrap again to enter maintenance mode:"
+    echo -e "    ${INFO}cd ~/.dotfiles/repo && ./bootstrap.sh${NC}"
+    echo ""
+    echo -e "  ${DIM}•${NC} View the installation log:"
+    echo -e "    ${INFO}cat ~/.dotfiles/bootstrap.log${NC}"
     echo ""
 }
 

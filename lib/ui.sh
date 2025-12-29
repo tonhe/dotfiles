@@ -47,55 +47,19 @@ EOF
 }
 
 # =============================================================================
-# Simple Box Drawing
+# Simple Header Drawing
 # =============================================================================
 
-# Draw a simple box around text
-# Usage: draw_box "Title" "width" "color"
-draw_box() {
+# Draw a simple header with line
+# Usage: draw_header "Title" "color"
+draw_header() {
     local text="$1"
-    local width=${2:-71}
-    local color=${3:-$HEADER}
+    local color=${2:-$HEADER}
+    local line_length=60
 
-    local text_len=${#text}
-    local padding=$(( (width - text_len - 4) / 2 ))
-    local right_padding=$(( width - text_len - 4 - padding ))
-
-    echo -ne "${color}${BOX_D_TL}"
-    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
-    echo -e "${BOX_D_TR}${NC}"
-
-    echo -ne "${color}${BOX_D_V}${NC}"
-    printf "%*s" $((padding + 1)) ""
-    echo -ne "${BRIGHT}${text}${NC}"
-    printf "%*s" $((right_padding + 1)) ""
-    echo -e "${color}${BOX_D_V}${NC}"
-
-    echo -ne "${color}${BOX_D_BL}"
-    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
-    echo -e "${BOX_D_BR}${NC}"
-}
-
-# Draw an error/failure box - single line, fixed width
-# Usage: draw_failure_box "module-name"
-draw_failure_box() {
-    local module="$1"
-    local width=62
-    local text="FAILED: ${module}"
-    local text_len=${#text}
-    local padding=$((width - text_len - 4))
-
-    echo -ne "${ERROR}${BOX_D_TL}"
-    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
-    echo -e "${BOX_D_TR}${NC}"
-
-    echo -ne "${ERROR}${BOX_D_V}${NC}  ${text}"
-    printf "%*s" $((padding + 2)) ""
-    echo -e "${ERROR}${BOX_D_V}${NC}"
-
-    echo -ne "${ERROR}${BOX_D_BL}"
-    printf "%.0s${BOX_D_H}" $(seq 1 $((width - 2)))
-    echo -e "${BOX_D_BR}${NC}"
+    echo ""
+    echo -e "${color}[ ${BRIGHT}${text}${NC}${color} ]$(printf '%.0s─' $(seq 1 $line_length))${NC}"
+    echo ""
 }
 
 # =============================================================================
@@ -306,13 +270,9 @@ display_module_status() {
         fi
     fi
 
-    # Box border: 69 chars total (┌ + 67 × ─ + ┐)
-    # Content line must also be 69 chars (│ + 67 content + │)
-    # Content layout: "  ○ module-name (32)              status (30)    "
-    # 2 + 1 + 1 + 32 + 1 + 30 = 67 chars between the │ symbols
-
+    # Simple list format without boxes
     local status_info="${status_text}${info_text:+ }${info_text}"
-    printf "${SECTION}│${NC}  ${color}${symbol}${NC} %-32s %-30s${SECTION}│${NC}\n" "${module}" "${status_info}"
+    printf "  ${color}${symbol}${NC} %-24s ${DIM}%-30s${NC}\n" "${module}" "${status_info}"
 }
 
 # =============================================================================
@@ -322,28 +282,22 @@ display_module_status() {
 # Display a categorized list of modules
 # Usage: display_module_list
 display_module_list() {
-    local width=67
-
-    echo -e "${SECTION}┌$(printf '─%.0s' $(seq 1 $width))┐${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}System Setup${NC}$(printf '%*s' $((width - 14)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}├$(printf '─%.0s' $(seq 1 $width))┤${NC}"
+    echo ""
+    echo -e "${SECTION}[ ${BRIGHT}System Setup${NC}${SECTION} ]$(printf '%.0s─' {1..60})${NC}"
+    echo ""
 
     # This is a template - actual implementation will load from state files
     display_module_status "xcode-cli" "installed" "15.1" "2024-01-15"
     display_module_status "homebrew" "installed" "4.2.0" "2024-01-15"
     display_module_status "macos-defaults" "pending"
 
-    echo -e "${SECTION}└$(printf '─%.0s' $(seq 1 $width))┘${NC}"
     echo ""
-
-    echo -e "${SECTION}┌$(printf '─%.0s' $(seq 1 $width))┐${NC}"
-    echo -e "${SECTION}│${NC} ${BRIGHT}Applications & Tools${NC}$(printf '%*s' $((width - 22)) '')${SECTION}│${NC}"
-    echo -e "${SECTION}├$(printf '─%.0s' $(seq 1 $width))┤${NC}"
+    echo -e "${SECTION}[ ${BRIGHT}Applications & Tools${NC}${SECTION} ]$(printf '%.0s─' {1..60})${NC}"
+    echo ""
 
     display_module_status "brewfile" "update_available" "47 pkgs" "2024-01-20"
     display_module_status "nvchad" "installed" "2.5" "2024-01-15"
 
-    echo -e "${SECTION}└$(printf '─%.0s' $(seq 1 $width))┘${NC}"
     echo ""
 }
 
@@ -353,9 +307,7 @@ display_module_list() {
 
 # Display the maintenance mode menu
 display_maintenance_menu() {
-    echo ""
-    draw_box "Maintenance Mode" 71 "${SECTION}"
-    echo ""
+    draw_header "MAINTENANCE MODE" "${SECTION}"
     echo -e "${TEXT}What would you like to do?${NC}"
     echo ""
     echo -e "  ${INFO}[1]${NC} ${TEXT}Refresh all (pull latest + reconfigure all modules)${NC}"
@@ -379,9 +331,7 @@ display_first_run() {
     shift
     local modules=("$@")
 
-    echo ""
-    draw_box "First Time Setup" 71 "${HEADER}"
-    echo ""
+    draw_header "FIRST TIME SETUP" "${HEADER}"
     echo -e "${TEXT}This appears to be your first run.${NC}"
     echo -e "${TEXT}The following ${BOLD}${module_count} modules${NC}${TEXT} will be installed:${NC}"
     echo ""
@@ -400,7 +350,7 @@ display_first_run() {
 # =============================================================================
 # Export Functions
 # =============================================================================
-export -f print_banner draw_box
+export -f print_banner draw_header
 export -f start_spinner stop_spinner progress_bar
 export -f show_menu confirm
 export -f display_module_status display_module_list

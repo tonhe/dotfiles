@@ -111,6 +111,8 @@ brew "tree"             # Directory tree
 brew "wget"             # HTTP client
 brew "curl"             # HTTP client
 brew "grex"             # Regex generator
+brew "gum"              # Glamorous shell scripts (TUI components)
+brew "astroterm"        # Astronomy terminal app
 
 # Node.js (for NVChad LSP, etc.)
 brew "node"

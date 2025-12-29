@@ -80,7 +80,7 @@ install() {
     set +e
     while IFS= read -r line; do
         # Skip sudo error messages from package post-install scripts
-        [[ "$line" =~ ^sudo:.*password.*required ]] && continue
+        [[ "$line" =~ sudo:.*password.*required ]] && continue
 
         # Extract package name from "Installing <package>" or "Using <package>"
         if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then
@@ -161,7 +161,7 @@ reconfigure() {
     set +e
     while IFS= read -r line; do
         # Skip sudo error messages from package post-install scripts
-        [[ "$line" =~ ^sudo:.*password.*required ]] && continue
+        [[ "$line" =~ sudo:.*password.*required ]] && continue
 
         # Extract package name from "Installing <package>" or "Using <package>"
         if [[ "$line" =~ Installing[[:space:]]([^[:space:]]+) ]] || [[ "$line" =~ Using[[:space:]]([^[:space:]]+) ]]; then

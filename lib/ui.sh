@@ -80,9 +80,7 @@ start_spinner() {
         local i=0
         while true; do
             local frame="${SPINNER_FRAMES:i++:1}"
-            # Get current boot time for each frame
-            #local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
-            local timestamp=""
+            local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
             printf "\r${DIM}${timestamp}${NC} ${SPINNER}${frame}${NC} ${DIM}${message}${NC}"
             if [ $i -ge ${#SPINNER_FRAMES} ]; then i=0; fi
             sleep 0.1
@@ -127,8 +125,7 @@ progress_bar() {
     for ((i=0; i<empty; i++)); do bar+="─"; done
 
     # Get timestamp
-    #local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
-    local timestamp=""
+    local timestamp=$(format_boot_time 2>/dev/null || echo "[    -.---]")
 
     # Print with percentage
     printf "\r${DIM}${timestamp}${NC} ${PROGRESS}[%s]${NC} ${BRIGHT}%3d%%${NC} ${DIM}%s${NC}" "$bar" "$percentage" "$message"

@@ -65,15 +65,20 @@ HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt appendhistory
-setopt sharehistory
+setopt share_history # share history between different instances
 setopt hist_ignore_space
 setopt hist_ignore_all_dups
 setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
+setopt hist_reduce_blanks # remove superfluous blanks from history items
+setopt correct_all # autocorrect commadns
+setopt auto_cd # cd by typing directory name if it's not a command
+setopt always_to_end # move cursor to end if word had one match
+setopt interactive_comments # allow comments in interactive shells
 
 # Completion styling
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+#zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' # enable case insensitive auto-complete matches
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
@@ -97,3 +102,4 @@ if command -v zoxide &>/dev/null; then
    eval "$(zoxide init --cmd cd zsh)"
 fi
 
+export BAT_THEME=solarized_dark

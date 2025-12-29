@@ -607,8 +607,8 @@ main() {
             exit 1
         fi
 
-        # Re-execute from cloned repo
-        exec "${DOTFILES_REPO_DIR}/bootstrap.sh" "$@"
+        # Re-execute from cloned repo with terminal as stdin
+        exec "${DOTFILES_REPO_DIR}/bootstrap.sh" "$@" < /dev/tty
     fi
 
     # Load all libraries

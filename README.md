@@ -59,10 +59,12 @@ cd ~/.dotfiles/repo
 ```
 
 Options include:
-- **Update** - Pull latest changes and reconfigure
-- **Reconfigure** - Re-run specific modules
-- **Verify** - Check installation status
-- **Show Log** - View detailed logs
+- **Install module** - Add new modules to your setup
+- **Uninstall module** - Remove installed modules
+- **Update Homebrew packages** - Run brew bundle to update packages
+- **Update dotfiles repository** - Pull latest changes from GitHub
+- **Show installation status** - View all installed modules
+- **View logs** - Check bootstrap execution logs
 
 ## Structure
 
@@ -173,10 +175,27 @@ Then run `brew bundle` or re-run the bootstrap.
 
 ## Post-Install
 
-1. **Restart terminal** or run `source ~/.zshrc`
-2. **Open Neovim** - Plugins install automatically. Run `:MasonInstallAll` for LSP servers
-3. **Start tmux** - Press `prefix + I` to install plugins
-4. **macOS**: Restart for all system preferences to take effect
+After installation completes, follow these steps:
+
+1. **Restart terminal** or run:
+   ```bash
+   source ~/.zshrc
+   ```
+
+2. **Open Neovim** to install base plugins (auto-installs on first launch):
+   ```bash
+   nvim
+   ```
+
+3. **Reopen Neovim** and install language servers:
+   ```bash
+   nvim
+   ```
+   Then run: `:MasonInstallAll`
+
+4. **Start tmux** - Press `prefix + I` to install plugins
+
+5. **macOS**: Restart for all system preferences to take effect
 
 ## Troubleshooting
 
@@ -199,8 +218,8 @@ cd ~/.dotfiles/repo
 
 ### Clean reinstall
 ```bash
-rm -rf ~/.dotfiles
-# Then run bootstrap again
+rm -rf ~/.dotfiles/metadata.json ~/.dotfiles/state/
+# Then run bootstrap again - it will enter first-time setup mode
 ```
 
 ## Advanced

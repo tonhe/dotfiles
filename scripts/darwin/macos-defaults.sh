@@ -46,15 +46,6 @@ install() {
     # Dark Mode
     defaults write NSGlobalDomain AppleInterfaceStyle -string "Dark"
 
-    # Icon size: 16 (very small!)
-    defaults write com.apple.dock tilesize -int 16
-
-    # Magnification: enabled
-    defaults write com.apple.dock magnification -bool true
-
-    # Magnification size: 128 (maximum)
-    defaults write com.apple.dock largesize -int 128
-
     # Disable the sound effects on boot
     sudo nvram SystemAudioVolume=" " 2>/dev/null || true
 
@@ -189,8 +180,14 @@ install() {
     # Dock
     # =============================================================================
 
-    # Set the icon size of Dock items
-    defaults write com.apple.dock tilesize -int 36
+    # Icon size: 16 (very small!)
+    defaults write com.apple.dock tilesize -int 16
+
+    # Magnification: enabled
+    defaults write com.apple.dock magnification -bool true
+
+    # Magnification size: 128 (maximum)
+    defaults write com.apple.dock largesize -int 128
 
     # Change minimize/maximize window effect
     defaults write com.apple.dock mineffect -string "scale"

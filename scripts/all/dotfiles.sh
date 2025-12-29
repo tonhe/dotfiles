@@ -48,14 +48,29 @@ needs_update() {
     [[ "$src_hash" != "$dest_hash" ]]
 }
 
-# Backup existing file (silent)
+# Backup existing file or directory
 backup_file() {
     local file="$1"
 
-    if [[ -f "$file" ]] || [[ -d "$file" ]]; then
+    if [[ -e "$file" ]]; then
         local backup="${file}.backup-$(date +%Y%m%d-%H%M%S)"
-        cp -a "$file" "$backup" 2>/dev/null
+        mv "$file" "$backup"
+        return 0
     fi
+    return 1
+}
+
+# Backup entire directory by renaming
+backup_directory() {
+    local dir="$1"
+
+    if [[ -d "$dir" ]]; then
+        local backup="${dir}.backup-$(date +%Y%m%d-%H%M%S)"
+        mv "$dir" "$backup"
+        log_info "Backed up existing directory: $(basename "$dir") -> $(basename "$backup")"
+        return 0
+    fi
+    return 1
 }
 
 # =============================================================================
@@ -94,7 +109,7 @@ install() {
         progress_bar $current $total_dotfiles "Copying: $(basename "$src_file")"
 
         if needs_update "$src_file" "$dest_file"; then
-            backup_file "$dest_file" 2>/dev/null
+            backup_file "$dest_file"
             cp "$src_file" "$dest_file"
             ((files_copied++))
         else
@@ -112,7 +127,7 @@ install() {
                 local dir_name=$(basename "$config_dir")
                 local dest_dir="${HOME}/.config/${dir_name}"
 
-                backup_file "$dest_dir" 2>/dev/null
+                backup_file "$dest_dir"
                 cp -R "$config_dir" "$dest_dir"
                 ((files_copied++))
             fi
@@ -125,7 +140,7 @@ install() {
                 local dest_file="${HOME}/.config/${file_name}"
 
                 if needs_update "$config_file" "$dest_file"; then
-                    backup_file "$dest_file" 2>/dev/null
+                    backup_file "$dest_file"
                     cp "$config_file" "$dest_file"
                     ((files_copied++))
                 fi
@@ -133,17 +148,21 @@ install() {
         done
     fi
 
-    # Copy private_bin directory -> ~/bin/
-    if [[ -d "${DOTFILES_SOURCE}/private_bin" ]]; then
-        ensure_dir "${HOME}/bin"
+    # Copy home_bin directory -> ~/bin/
+    if [[ -d "${DOTFILES_SOURCE}/home_bin" ]]; then
+        # Backup existing ~/bin if it exists
+        backup_directory "${HOME}/bin"
+
+        # Create fresh bin directory
+        mkdir -p "${HOME}/bin"
 
         # Count total bin files for progress
-        local bin_items=($(find "${DOTFILES_SOURCE}/private_bin" -maxdepth 1 -type f -o -type d ! -path "${DOTFILES_SOURCE}/private_bin"))
+        local bin_items=($(find "${DOTFILES_SOURCE}/home_bin" -maxdepth 1 -type f -o -type d ! -path "${DOTFILES_SOURCE}/home_bin"))
         local total_bin=${#bin_items[@]}
         local bin_current=0
 
         # Copy all scripts and make them executable
-        for bin_file in "${DOTFILES_SOURCE}"/private_bin/*; do
+        for bin_file in "${DOTFILES_SOURCE}"/home_bin/*; do
             ((bin_current++))
 
             if [[ -f "$bin_file" ]]; then
@@ -152,21 +171,15 @@ install() {
 
                 progress_bar $bin_current $total_bin "Installing: bin/${file_name}"
 
-                if needs_update "$bin_file" "$dest_file"; then
-                    backup_file "$dest_file" 2>/dev/null
-                    cp "$bin_file" "$dest_file"
-                    chmod +x "$dest_file"
-                    ((files_copied++))
-                else
-                    ((files_skipped++))
-                fi
+                cp "$bin_file" "$dest_file"
+                chmod +x "$dest_file"
+                ((files_copied++))
             elif [[ -d "$bin_file" ]]; then
                 local dir_name=$(basename "$bin_file")
                 local dest_dir="${HOME}/bin/${dir_name}"
 
                 progress_bar $bin_current $total_bin "Installing: bin/${dir_name}/"
 
-                backup_file "$dest_dir" 2>/dev/null
                 cp -R "$bin_file" "$dest_dir"
 
                 # Make scripts in subdirectory executable

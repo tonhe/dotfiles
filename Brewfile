@@ -57,10 +57,15 @@ brew "httpie"            # User-friendly HTTP client
 brew "hey"               # HTTP load generator
 brew "wrk"               # Modern HTTP benchmarking tool
 
-# Network monitoring
+# Network monitoring & Awesome TUIs
 brew "iftop"             # Display bandwidth usage per interface
 brew "bandwhich"         # Terminal bandwidth utilization tool (per process)
 brew "bmon"              # Bandwidth monitor and rate estimator
+brew "nethogs"           # Net top tool grouping bandwidth per process
+brew "netscanner"        # Network scanner with TUI
+brew "macmon"            # macOS system monitor TUI
+brew "gping"             # Ping with a graph
+brew "cointop"           # Cryptocurrency prices tracker TUI
 
 # Security testing & penetration testing
 brew "hydra"             # Network logon cracker

@@ -208,7 +208,7 @@ run_first_time_setup() {
     # Confirm unless non-interactive
     if [[ "$NON_INTERACTIVE" == false && "$DRY_RUN" == false ]]; then
         echo -ne "${TEXT}Press ${BOLD}ENTER${NC}${TEXT} to begin installation or ${BOLD}Ctrl+C${NC}${TEXT} to cancel${NC} "
-        read -r
+        read -r < /dev/tty
     fi
 
     echo ""
@@ -310,7 +310,7 @@ run_maintenance_mode() {
         echo ""
         display_maintenance_menu
 
-        read -r choice
+        read -r choice < /dev/tty
 
         case "$choice" in
             1)
@@ -426,7 +426,7 @@ handle_install_module() {
 
     echo ""
     echo -ne "${DIM}Choice [1-${#menu_modules[@]}] or [0] to cancel:${NC} "
-    read -r choice
+    read -r choice < /dev/tty
 
     if [[ "$choice" == "0" ]]; then
         log_info "Cancelled"
@@ -496,7 +496,7 @@ handle_uninstall_module() {
 
     echo ""
     echo -ne "${DIM}Module to uninstall [1-${#menu_modules[@]}] or [0] to cancel:${NC} "
-    read -r choice
+    read -r choice < /dev/tty
 
     if [[ "$choice" == "0" ]]; then
         log_info "Cancelled"
@@ -509,7 +509,7 @@ handle_uninstall_module() {
 
         echo ""
         echo -ne "${WARN}Really uninstall ${module_name}? (y/N):${NC} "
-        read -r confirm
+        read -r confirm < /dev/tty
 
         if [[ "$confirm" =~ ^[Yy]$ ]]; then
             log_module_start "$selected_module"
@@ -544,7 +544,7 @@ handle_show_logs() {
     echo -e "  ${INFO}[3]${NC} ${TEXT}Tail log (live)${NC}"
     echo ""
     echo -ne "${DIM}Choice [1-3]:${NC} "
-    read -r choice
+    read -r choice < /dev/tty
 
     case "$choice" in
         1) log_show | less ;;

@@ -180,7 +180,7 @@ confirm() {
     fi
 
     echo -ne "${WARN}${SYMBOL_WARN}${NC} ${TEXT}${message}${NC} ${DIM}${prompt}${NC} "
-    read -r response
+    read -r response < /dev/tty
 
     # Convert to lowercase
     response=$(echo "$response" | tr '[:upper:]' '[:lower:]')

@@ -15,19 +15,22 @@ get_version() { is_installed && echo "configured" || echo "not configured"; }
 
 install() {
     log_info "Configuring mtr permissions..."
-    
+
+    # Refresh sudo timestamp silently (uses parent's authentication)
+    sudo -n -v 2>/dev/null || true
+
     local mtr_path=""
     if [[ $(uname -m) == "arm64" ]]; then
         mtr_path="/opt/homebrew/sbin/mtr-packet"
     else
         mtr_path="/usr/local/sbin/mtr-packet"
     fi
-    
+
     if [[ ! -f "$mtr_path" ]]; then
         log_error "mtr-packet not found at $mtr_path (install mtr via Homebrew first)"
         return 1
     fi
-    
+
     log_info "Setting setuid bit on mtr-packet..."
     sudo chown root:wheel "$mtr_path"
     sudo chmod u+s "$mtr_path"

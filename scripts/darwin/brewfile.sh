@@ -84,6 +84,11 @@ install() {
             current_package="${BASH_REMATCH[1]}"
             current=$((current + 1))
             progress_bar $current $total "Installing: $current_package"
+
+            # Refresh sudo every 10 packages to keep timestamp fresh
+            if (( current % 10 == 0 )); then
+                sudo -n -v 2>/dev/null || true
+            fi
         fi
     done < <(brew bundle --file="$brewfile" 2>&1)
 
@@ -157,6 +162,11 @@ reconfigure() {
             current_package="${BASH_REMATCH[1]}"
             current=$((current + 1))
             progress_bar $current $total "Updating: $current_package"
+
+            # Refresh sudo every 10 packages to keep timestamp fresh
+            if (( current % 10 == 0 )); then
+                sudo -n -v 2>/dev/null || true
+            fi
         fi
     done < <(brew bundle --file="$brewfile" 2>&1)
 

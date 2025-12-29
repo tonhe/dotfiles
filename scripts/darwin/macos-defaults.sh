@@ -36,7 +36,10 @@ install() {
     # Close System Preferences to prevent override
     osascript -e 'tell application "System Preferences" to quit' 2>/dev/null || true
 
-    log_section "GENERAL UI/UX"
+    # Start spinner for applying all defaults
+    start_spinner "Applying macOS system defaults"
+
+    # GENERAL UI/UX
 
     sudo nvram SystemAudioVolume=" " 2>/dev/null || true
 
@@ -55,7 +58,6 @@ install() {
     defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
     defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
-    log_section "TRACKPAD, MOUSE, KEYBOARD"
 
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -67,7 +69,6 @@ install() {
 
     defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
-    log_section "FINDER"
 
     defaults write com.apple.finder AppleShowAllFiles -bool true
 
@@ -118,7 +119,6 @@ install() {
 
     sudo chflags nohidden /Volumes 2>/dev/null || true
 
-    log_section "DOCK"
 
     defaults write com.apple.dock tilesize -int 36
 
@@ -142,7 +142,6 @@ install() {
 
     defaults write com.apple.dock show-recents -bool false
 
-    log_section "SAFARI & WEBKIT"
 
     defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
 
@@ -161,7 +160,6 @@ install() {
 
     defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 
-    log_section "SPOTLIGHT"
 
     sudo defaults write /.Spotlight-V100/VolumeConfiguration Exclusions -array "/Volumes" 2>/dev/null || true
 
@@ -194,7 +192,6 @@ install() {
     sudo mdutil -i on / 2>/dev/null || true
     sudo mdutil -E / 2>/dev/null || true
 
-    log_section "ACTIVITY MONITOR"
 
     defaults write com.apple.ActivityMonitor OpenMainWindow -bool true
 
@@ -205,24 +202,20 @@ install() {
     defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
     defaults write com.apple.ActivityMonitor SortDirection -int 0
 
-    log_section "TERMINAL"
 
     defaults write com.apple.terminal SecureKeyboardEntry -bool true
 
     defaults write com.apple.Terminal ShowLineMarks -int 0
 
-    log_section "TIME MACHINE"
 
     defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
-    log_section "TEXT EDIT"
 
     defaults write com.apple.TextEdit RichText -int 0
 
     defaults write com.apple.TextEdit PlainTextEncoding -int 4
     defaults write com.apple.TextEdit PlainTextEncodingForWrite -int 4
 
-    log_section "SCREENSHOTS"
 
     mkdir -p "${HOME}/Pictures/Screenshots"
     defaults write com.apple.screencapture location -string "${HOME}/Pictures/Screenshots"
@@ -231,15 +224,16 @@ install() {
 
     defaults write com.apple.screencapture disable-shadow -bool true
 
-    log_section "MISC"
 
-    if [[ ! -L "$HOME/iCloud" ]] && [[ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs" ]]; then
-        ln -s "$HOME/Library/Mobile Documents/com~apple~CloudDocs" "$HOME/iCloud"
-        log_success "iCloud symlink created at ~/iCloud"
+    if [[ ! -L "$HOME/iCloudDrive" ]] && [[ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs" ]]; then
+        ln -s "$HOME/Library/Mobile Documents/com~apple~CloudDocs" "$HOME/iCloudDrive"
     fi
 
     # Mark as applied
     date +%Y-%m-%d > "$STATE_FILE"
+
+    # Stop spinner before showing results
+    stop_spinner
 
     log_success "macOS defaults applied successfully"
     log_warn "Restart required for all changes to take effect"
